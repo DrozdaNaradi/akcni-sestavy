@@ -165,7 +165,9 @@ let openId = null;
 
 // ── AUTH ─────────────────────────────────────
 function doLogin() {
-  if (document.getElementById('pwd').value === PWD) {
+  const val = document.getElementById('pwd').value;
+  alert('Zadáno: [' + val + '] Očekáváno: [' + PWD + ']');
+  if (val === PWD) {
     sessionStorage.setItem('auth','1');
     document.getElementById('login').hidden = true;
     document.getElementById('app').hidden   = false;
