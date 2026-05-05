@@ -7,83 +7,112 @@
 <meta name="description" content="Výhodné sady nářadí Milwaukee za akční ceny. Drozda Nářadí."/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
-  --bg:#0b0b0d;--surface:#161618;--surface-2:#1d1d20;
-  --line:rgba(255,255,255,.08);--line-s:rgba(255,255,255,.14);
-  --text:#f5f5f7;--text-2:#a1a1a6;--text-3:#6e6e73;
-  --red:#e4002b;--green:#30d158;--radius:12px;
+  --red:#DB011C;
+  --yellow:#FFD60A;
+  --bg:#0a0a0a;
+  --container-bg:#161616;
+  --card-bg:#1f1f1f;
+  --border:#2c2c2c;
+  --border-soft:#1c1c1c;
+  --card-border:#2f2f2f;
+  --text:#f5f5f5;
+  --text-2:#bdbdbd;
+  --text-3:#9a9a9a;
+  --text-4:#888;
+  --text-5:#7a7a7a;
+  --text-6:#666;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
 
 /* TOPBAR */
-.topbar{border-bottom:1px solid var(--line);background:rgba(11,11,13,.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);position:sticky;top:0;z-index:50}
-.topbar-inner{max-width:980px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
-.brand{font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
-.brand span{color:var(--text-3);font-weight:500;margin-left:8px}
-.topbar-tag{font-size:13px;color:var(--text-2);font-weight:500}
-
-/* CONTAINER */
-.container{max-width:980px;margin:0 auto;padding:56px 24px 80px}
+.topbar{border-bottom:1px solid var(--border-soft);font-size:14px}
+.topbar-inner{max-width:1280px;margin:0 auto;padding:32px 80px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:baseline;color:#fff}
+.brand strong{font-weight:700;letter-spacing:-.01em}
+.brand span{color:var(--text-6)}
+.topbar-tag{color:#999;font-weight:500}
 
 /* HERO */
-.hero{margin-bottom:52px}
-.hero-date{font-size:13px;font-weight:600;color:var(--red);letter-spacing:.02em;margin-bottom:14px}
-.hero h1{font-size:clamp(32px,5vw,52px);font-weight:700;letter-spacing:-.035em;line-height:1.05;margin-bottom:12px}
-.hero p{font-size:17px;color:var(--text-2);max-width:520px}
+.hero{max-width:1280px;margin:0 auto;padding:88px 80px 64px}
+.eyebrow{color:var(--red);font-size:14px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;margin-bottom:20px}
+.hero h1{font-size:120px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 28px;color:#fff}
+.hero p{font-size:20px;color:var(--text-3);max-width:560px;line-height:1.45;margin:0}
 
-/* SESTAVA */
-.sestava{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:20px;overflow:hidden}
-.sestava-header{padding:24px 28px 0}
-.sestava-nazev{font-size:20px;font-weight:700;letter-spacing:-.025em;margin-bottom:20px}
+/* SETS */
+.sets{max-width:1280px;margin:0 auto;padding:24px 80px 96px;display:flex;flex-direction:column;gap:32px}
+
+/* SET */
+.set{background:var(--container-bg);border:1px solid var(--border);border-radius:24px;padding:36px;display:flex;flex-direction:column;gap:28px}
+.set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid var(--border);gap:24px;flex-wrap:wrap}
+.set-name{font-size:52px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1}
+.set-header-right{display:flex;align-items:center;gap:16px;flex-shrink:0}
+.save-block{text-align:right}
+.save-label{color:var(--text-3);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.save-value{color:#fff;font-size:32px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.save-pct{background:var(--red);color:#fff;font-size:28px;font-weight:800;padding:14px 18px;border-radius:10px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
 
 /* PRODUCT GRID */
-.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:0 28px}
-.prod-card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s}
-.prod-card:hover{border-color:rgba(0,0,0,.18)}
-.prod-img-wrap{aspect-ratio:1;border-radius:5px;background:#f5f5f7;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.prod-img-wrap img{width:100%;height:100%;object-fit:contain;padding:6px}
-.prod-artikl{font-size:10px;font-weight:600;letter-spacing:.04em;color:#8e8e93;font-family:'SF Mono','Menlo',monospace}
-.prod-name{font-size:12px;font-weight:600;color:#1d1d1f;line-height:1.4;flex:1}
-.prod-ceny{display:flex;flex-direction:column;gap:2px}
-.prod-cena-bez{font-size:15px;font-weight:700;color:#1d1d1f}
-.prod-cena-s{font-size:11px;color:#8e8e93}
-.prod-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--red);text-decoration:none;margin-top:2px}
-.prod-link:hover{text-decoration:underline}
-.prod-link svg{flex-shrink:0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card-img{background:#fafafa;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-img img{width:100%;height:100%;object-fit:contain;padding:6px}
+.card-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:12px;flex:1}
+.sku{color:var(--text-4);font-size:12px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.02em}
+.prod-name{font-size:15px;font-weight:500;line-height:1.35;color:#f0f0f0;margin:0;min-height:60px;flex:1}
+.price-row{border-top:1px solid var(--border);padding-top:12px;margin-top:auto}
+.price-main{font-size:22px;font-weight:700;color:#fff}
+.price-vat{font-size:12px;color:var(--text-4);margin-top:2px}
+.cta{color:var(--red);font-size:13px;font-weight:600;padding-top:12px;border-top:1px solid var(--border);margin-top:4px;display:flex;align-items:center;gap:6px;text-decoration:none}
+.cta:hover{text-decoration:underline}
 
-/* PRICE SUMMARY */
-.price-summary{border-top:1px solid var(--line);margin-top:20px;padding:20px 28px 24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
-.ps-group{display:flex;flex-direction:column;gap:3px}
-.ps-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
-.ps-val-bez{font-size:22px;font-weight:700;letter-spacing:-.025em;line-height:1}
-.ps-val-s{font-size:12px;color:var(--text-3);margin-top:2px}
-.ps-strike .ps-val-bez{color:var(--text-3);text-decoration:line-through;font-size:18px}
-.ps-akcni .ps-val-bez{color:var(--red)}
-.ps-sleva .ps-val-bez{color:var(--green)}
-.ps-badge{display:inline-flex;align-items:center;background:rgba(48,209,88,.15);color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;margin-top:4px}
-.ps-divider{width:1px;height:48px;background:var(--line);flex-shrink:0}
+/* SUMMARY */
+.summary{padding-top:24px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
+.sum-col{display:flex;flex-direction:column;min-width:0}
+.sum-col.right{text-align:right;align-items:flex-end}
+.sum-label{color:var(--text-2);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:4px}
+.sum-sublabel{color:var(--text-5);font-size:12px;font-weight:500;letter-spacing:.02em;line-height:1.2;margin-bottom:14px}
+.sum-value{font-size:64px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0}
+.sum-value.list{color:var(--text-5);text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+.sum-value.sale{color:var(--yellow)}
+.sum-vat{font-size:12px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:10px;line-height:1.2}
+
+/* FOOTER */
+.page-footer{max-width:1280px;margin:0 auto;padding:40px 80px 80px;color:var(--text-6);font-size:12px;border-top:1px solid var(--border-soft)}
 
 /* EMPTY / LOADING */
-.empty{text-align:center;padding:80px 20px;color:var(--text-3)}
-.empty h2{font-size:20px;font-weight:600;color:var(--text-2);margin-bottom:8px}
-.loading{text-align:center;padding:80px 20px;color:var(--text-3);font-size:15px}
+.empty{text-align:center;padding:80px 20px;color:var(--text-5)}
+.empty h2{font-size:20px;font-weight:600;color:var(--text-3);margin-bottom:8px}
+.loading{text-align:center;padding:80px 20px;color:var(--text-5);font-size:15px}
 
 /* RESPONSIVE */
-@media(max-width:700px){
-  .container{padding:36px 16px 60px}
-  .sestava-header{padding:20px 20px 0}
-  .prod-grid{padding:0 20px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-  .price-summary{padding:16px 20px 20px;gap:20px}
-  .ps-divider{display:none}
-  .ps-val-bez{font-size:18px}
+@media(max-width:900px){
+  .topbar-inner{padding:20px 24px}
+  .hero{padding:48px 24px 32px}
+  .hero h1{font-size:64px}
+  .hero p{font-size:16px}
+  .sets{padding:16px 16px 64px;gap:20px}
+  .set{padding:20px;border-radius:18px}
+  .set-name{font-size:32px}
+  .set-header{flex-direction:column;align-items:flex-start}
+  .set-header-right{width:100%;justify-content:space-between}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .summary{grid-template-columns:1fr;gap:20px}
+  .sum-col.right{text-align:left;align-items:flex-start}
+  .sum-value{font-size:44px}
+  .sum-value.list{font-size:28px}
+  .page-footer{padding:24px}
 }
-@media(max-width:480px){
-  .topbar-inner{padding:14px 16px}
-  .prod-grid{grid-template-columns:repeat(2,1fr)}
+@media(max-width:540px){
+  .grid{grid-template-columns:1fr}
+  .hero h1{font-size:48px}
+  .set-name{font-size:26px}
+  .sum-value{font-size:44px}
+  .sum-value.list{font-size:24px}
 }
 </style>
 </head>
@@ -91,19 +120,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand">Drozda Nářadí <span>Presents</span></div>
+    <div class="brand"><strong>Drozda Nářadí</strong><span>Presents</span></div>
     <div class="topbar-tag">Akční sestavy</div>
   </div>
 </header>
 
-<main class="container">
-  <section class="hero">
-    <div class="hero-date">Milwaukee Tool</div>
-    <h1>Akční sestavy</h1>
-    <p>Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
-  </section>
-  <div id="sestavy"><div class="loading">Načítání…</div></div>
+<section class="hero">
+  <div class="eyebrow">Milwaukee Tool</div>
+  <h1>Akční sestavy</h1>
+  <p>Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
+</section>
+
+<main class="sets" id="sestavy">
+  <div class="loading">Načítání…</div>
 </main>
+
+<footer class="page-footer">© Drozda Nářadí · Akce platí jen po omezenou dobu.</footer>
 
 <script>
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
@@ -127,60 +159,58 @@ async function load() {
   }
 
   el.innerHTML = sestavy.map(s => {
-    const prods  = (s.produkty_sestavy || []).sort((a,b) => a.poradi - b.poradi);
-    const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
-    const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
-    const akcni  = Number(s.akcni_cena) || 0;
-    const akcniS = Math.round(akcni * 1.21);
+    const prods   = (s.produkty_sestavy || []).sort((a,b) => a.poradi - b.poradi);
+    const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
+    const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+    const akcni   = Number(s.akcni_cena) || 0;
+    const akcniS  = Math.round(akcni * 1.21);
     const slevaBez = celBez - akcni;
-    const slevaS   = celS - akcniS;
     const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
 
     const prodsHTML = prods.map(p => `
-      <div class="prod-card">
-        <div class="prod-img-wrap">
-          <img src="${p.foto_url}" alt="${p.nazev}" onerror="this.parentElement.style.opacity='.3'">
+      <div class="card">
+        <div class="card-img">
+          <img src="${p.foto_url}" alt="${p.nazev}" onerror="this.parentElement.style.opacity='.2'">
         </div>
-        <div class="prod-artikl">${p.artiklove_cislo}</div>
-        <div class="prod-name">${p.nazev}</div>
-        <div class="prod-ceny">
-          <div class="prod-cena-bez">${fmt(p.cena_bez_dph)} Kč</div>
-          <div class="prod-cena-s">${fmt(p.cena_s_dph)} Kč s DPH</div>
+        <div class="card-body">
+          <div class="sku">${p.artiklove_cislo}</div>
+          <h3 class="prod-name">${p.nazev}</h3>
+          <div class="price-row">
+            <div class="price-main">${fmt(p.cena_bez_dph)} Kč</div>
+            <div class="price-vat">${fmt(p.cena_s_dph)} Kč s DPH</div>
+          </div>
+          ${p.odkaz_eshop ? `<a class="cta" href="${p.odkaz_eshop}" target="_blank" rel="noopener">Detail produktu <span>↗</span></a>` : ''}
         </div>
-        ${p.odkaz_eshop ? `
-          <a class="prod-link" href="${p.odkaz_eshop}" target="_blank" rel="noopener">
-            Detail produktu
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>` : ''}
       </div>`).join('');
 
     return `
-    <div class="sestava">
-      <div class="sestava-header">
-        <div class="sestava-nazev">${s.nazev}</div>
-      </div>
-      <div class="prod-grid">${prodsHTML}</div>
-      <div class="price-summary">
-        <div class="ps-group ps-strike">
-          <div class="ps-label">Ceníková cena</div>
-          <div class="ps-val-bez">${fmt(celBez)} Kč</div>
-          <div class="ps-val-s">${fmt(celS)} Kč s DPH</div>
+    <article class="set">
+      <header class="set-header">
+        <h2 class="set-name">${s.nazev}</h2>
+        <div class="set-header-right">
+          <div class="save-block">
+            <div class="save-label">Ušetříte</div>
+            <div class="save-value">${fmt(slevaBez)} Kč</div>
+          </div>
+          <div class="save-pct">−${pct} %</div>
         </div>
-        <div class="ps-divider"></div>
-        <div class="ps-group ps-akcni">
-          <div class="ps-label">Akční cena</div>
-          <div class="ps-val-bez">${fmt(akcni)} Kč</div>
-          <div class="ps-val-s">${fmt(akcniS)} Kč s DPH</div>
+      </header>
+      <div class="grid">${prodsHTML}</div>
+      <footer class="summary">
+        <div class="sum-col">
+          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-sublabel">Cena bez DPH 21 %</div>
+          <div class="sum-value list">${fmt(celBez)} Kč</div>
+          <div class="sum-vat">${fmt(celS)} Kč s DPH</div>
         </div>
-        <div class="ps-divider"></div>
-        <div class="ps-group ps-sleva">
-          <div class="ps-label">Ušetříte</div>
-          <div class="ps-val-bez">${fmt(slevaBez)} Kč</div>
-          <div class="ps-val-s">${fmt(slevaS)} Kč s DPH</div>
-          <div class="ps-badge">−${pct} %</div>
+        <div class="sum-col right">
+          <div class="sum-label">Akční cena sestavy</div>
+          <div class="sum-sublabel">Cena bez DPH 21 %</div>
+          <div class="sum-value sale">${fmt(akcni)} Kč</div>
+          <div class="sum-vat">${fmt(akcniS)} Kč s DPH</div>
         </div>
-      </div>
-    </div>`;
+      </footer>
+    </article>`;
   }).join('');
 }
 
