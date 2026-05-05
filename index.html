@@ -56,19 +56,16 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 .prod-link svg{flex-shrink:0}
 
 /* PRICE SUMMARY */
-.price-summary{border-top:1px solid var(--line);margin-top:20px;padding:22px 28px 26px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.ps-left{display:flex;flex-direction:column;gap:6px}
-.ps-cenik-row{display:flex;align-items:center;gap:8px}
-.ps-cenik-tag{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
-.ps-cenik-strike{font-size:13px;color:var(--text-3);text-decoration:line-through;font-weight:500}
-.ps-akcni-big{font-size:34px;font-weight:700;letter-spacing:-.04em;color:var(--red);line-height:1}
-.ps-akcni-sub{display:flex;align-items:center;gap:10px;margin-top:1px}
-.ps-akcni-dph{font-size:13px;color:var(--text-3)}
-.ps-badge{display:inline-flex;align-items:center;background:rgba(48,209,88,.15);color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
-.ps-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.ps-sleva-tag{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
-.ps-sleva-val{font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--green);line-height:1.1}
-.ps-sleva-dph{font-size:12px;color:var(--text-3)}
+.price-summary{border-top:1px solid var(--line);margin-top:20px;padding:20px 28px 24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap}
+.ps-group{display:flex;flex-direction:column;gap:3px}
+.ps-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.ps-val-bez{font-size:22px;font-weight:700;letter-spacing:-.025em;line-height:1}
+.ps-val-s{font-size:12px;color:var(--text-3);margin-top:2px}
+.ps-strike .ps-val-bez{color:var(--text-3);text-decoration:line-through;font-size:18px}
+.ps-akcni .ps-val-bez{color:var(--red)}
+.ps-sleva .ps-val-bez{color:var(--green)}
+.ps-badge{display:inline-flex;align-items:center;background:rgba(48,209,88,.15);color:var(--green);font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px;margin-top:4px}
+.ps-divider{width:1px;height:48px;background:var(--line);flex-shrink:0}
 
 /* EMPTY / LOADING */
 .empty{text-align:center;padding:80px 20px;color:var(--text-3)}
@@ -80,9 +77,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
   .container{padding:36px 16px 60px}
   .sestava-header{padding:20px 20px 0}
   .prod-grid{padding:0 20px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
-  .price-summary{padding:18px 20px 22px;gap:14px}
-  .ps-akcni-big{font-size:28px}
-  .ps-sleva-val{font-size:20px}
+  .price-summary{padding:16px 20px 20px;gap:20px}
+  .ps-divider{display:none}
+  .ps-val-bez{font-size:18px}
 }
 @media(max-width:480px){
   .topbar-inner{padding:14px 16px}
@@ -164,21 +161,23 @@ async function load() {
       </div>
       <div class="prod-grid">${prodsHTML}</div>
       <div class="price-summary">
-        <div class="ps-left">
-          <div class="ps-cenik-row">
-            <span class="ps-cenik-tag">Ceníková</span>
-            <span class="ps-cenik-strike">${fmt(celBez)} Kč</span>
-          </div>
-          <div class="ps-akcni-big">${fmt(akcni)} Kč</div>
-          <div class="ps-akcni-sub">
-            <span class="ps-akcni-dph">${fmt(akcniS)} Kč s DPH</span>
-            <span class="ps-badge">−${pct} %</span>
-          </div>
+        <div class="ps-group ps-strike">
+          <div class="ps-label">Ceníková cena</div>
+          <div class="ps-val-bez">${fmt(celBez)} Kč</div>
+          <div class="ps-val-s">${fmt(celS)} Kč s DPH</div>
         </div>
-        <div class="ps-right">
-          <div class="ps-sleva-tag">Ušetříte</div>
-          <div class="ps-sleva-val">${fmt(slevaBez)} Kč</div>
-          <div class="ps-sleva-dph">${fmt(slevaS)} Kč s DPH</div>
+        <div class="ps-divider"></div>
+        <div class="ps-group ps-akcni">
+          <div class="ps-label">Akční cena</div>
+          <div class="ps-val-bez">${fmt(akcni)} Kč</div>
+          <div class="ps-val-s">${fmt(akcniS)} Kč s DPH</div>
+        </div>
+        <div class="ps-divider"></div>
+        <div class="ps-group ps-sleva">
+          <div class="ps-label">Ušetříte</div>
+          <div class="ps-val-bez">${fmt(slevaBez)} Kč</div>
+          <div class="ps-val-s">${fmt(slevaS)} Kč s DPH</div>
+          <div class="ps-badge">−${pct} %</div>
         </div>
       </div>
     </div>`;
