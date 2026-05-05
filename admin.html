@@ -159,7 +159,7 @@ const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
 const PWD    = 'drozda2026';
 
-const sb = supabase.createClient(SB_URL, SB_KEY);
+let sb = null;
 let db = {};
 let openId = null;
 
@@ -179,6 +179,8 @@ function logout(){ sessionStorage.removeItem('auth'); location.reload(); }
 
 // ── INIT ─────────────────────────────────────
 async function init() {
+  try { sb = supabase.createClient(SB_URL, SB_KEY); }
+  catch(e) { alert('Chyba připojení k databázi: ' + e.message); return; }
   db = await fetch('produkty.json').then(r => r.json());
   await refresh();
 }
