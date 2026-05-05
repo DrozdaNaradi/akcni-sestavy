@@ -38,23 +38,23 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .topbar-tag{color:#999;font-weight:500}
 
 /* HERO */
-.hero{max-width:1280px;margin:0 auto;padding:52px 80px 40px}
-.eyebrow{color:var(--red);font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;margin-bottom:14px}
-.hero h1{font-size:80px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 18px;color:#fff}
-.hero p{font-size:17px;color:var(--text-3);max-width:560px;line-height:1.45;margin:0}
+.hero{max-width:1280px;margin:0 auto;padding:36px 60px 28px}
+.eyebrow{color:var(--red);font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;margin-bottom:10px}
+.hero h1{font-size:58px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 12px;color:#fff}
+.hero p{font-size:15px;color:var(--text-3);max-width:560px;line-height:1.45;margin:0}
 
 /* SETS */
-.sets{max-width:1280px;margin:0 auto;padding:16px 80px 64px;display:flex;flex-direction:column;gap:24px}
+.sets{max-width:1280px;margin:0 auto;padding:12px 60px 48px;display:flex;flex-direction:column;gap:16px}
 
 /* SET */
-.set{background:var(--container-bg);border:1px solid var(--border);border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:20px}
-.set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--border);gap:24px;flex-wrap:wrap}
-.set-name{font-size:38px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1}
-.set-header-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.set{background:var(--container-bg);border:1px solid var(--border);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border);gap:20px;flex-wrap:wrap}
+.set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1}
+.set-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .save-block{text-align:right}
-.save-label{color:var(--text-3);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
-.save-value{color:#fff;font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
-.save-pct{background:var(--red);color:#fff;font-size:20px;font-weight:800;padding:10px 14px;border-radius:8px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
+.save-label{color:var(--text-3);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.save-value{color:#fff;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.save-pct{background:var(--red);color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
 
 /* PRODUCT GRID */
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
@@ -143,6 +143,8 @@ const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
 function fmt(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}); }
+function fmtKc(n){ return fmt(n) + ',- Kč'; }
+function fmtKcDph(n){ return fmt(n) + ',- Kč s DPH'; }
 
 async function load() {
   const { data: sestavy } = await sb
@@ -176,8 +178,8 @@ async function load() {
           <div class="sku">${p.artiklove_cislo}</div>
           <h3 class="prod-name">${p.nazev}</h3>
           <div class="price-row">
-            <div class="price-main">${fmt(p.cena_bez_dph)} Kč</div>
-            <div class="price-vat">${fmt(p.cena_s_dph)} Kč s DPH</div>
+            <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
+            <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
           </div>
           ${p.odkaz_eshop ? `<a class="cta" href="${p.odkaz_eshop}" target="_blank" rel="noopener">Detail produktu <span>↗</span></a>` : ''}
         </div>
@@ -190,7 +192,7 @@ async function load() {
         <div class="set-header-right">
           <div class="save-block">
             <div class="save-label">Ušetříte</div>
-            <div class="save-value">${fmt(slevaBez)} Kč</div>
+            <div class="save-value">${fmtKc(slevaBez)}</div>
           </div>
           <div class="save-pct">−${pct} %</div>
         </div>
@@ -200,14 +202,14 @@ async function load() {
         <div class="sum-col">
           <div class="sum-label">Ceníková cena</div>
           <div class="sum-sublabel">Cena bez DPH 21 %</div>
-          <div class="sum-value list">${fmt(celBez)} Kč</div>
-          <div class="sum-vat">${fmt(celS)} Kč s DPH</div>
+          <div class="sum-value list">${fmtKc(celBez)}</div>
+          <div class="sum-vat">${fmtKcDph(celS)}</div>
         </div>
         <div class="sum-col right">
           <div class="sum-label">Akční cena sestavy</div>
           <div class="sum-sublabel">Cena bez DPH 21 %</div>
-          <div class="sum-value sale">${fmt(akcni)} Kč</div>
-          <div class="sum-vat">${fmt(akcniS)} Kč s DPH</div>
+          <div class="sum-value sale">${fmtKc(akcni)}</div>
+          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
         </div>
       </footer>
     </article>`;
