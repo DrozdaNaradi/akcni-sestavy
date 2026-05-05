@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin – Akční Sestavy | Drozda Nářadí</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#0b0b0d;--surface:#161618;--surface-2:#1d1d20;--surface-3:#242428;
+  --line:rgba(255,255,255,.08);--line-s:rgba(255,255,255,.14);
+  --text:#f5f5f7;--text-2:#a1a1a6;--text-3:#6e6e73;
+  --red:#e4002b;--green:#30d158;--radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:40px;width:100%;max-width:340px;text-align:center}
+.login-logo{font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.login-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:28px}
+.login-input{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--text);font-size:15px;font-family:inherit;margin-bottom:10px;outline:none;text-align:center}
+.login-input:focus{border-color:var(--line-s)}
+.login-err{color:var(--red);font-size:13px;margin-bottom:10px;display:none}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:inherit;transition:opacity .15s;text-decoration:none;white-space:nowrap}
+.btn:hover{opacity:.82}.btn:active{opacity:.65}
+.btn-primary{background:var(--red);color:#fff}
+.btn-secondary{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+.btn-ghost{background:transparent;color:var(--text-3);padding:6px 10px;font-size:13px}
+.btn-danger{background:rgba(228,0,43,.15);color:var(--red)}
+.btn-sm{padding:6px 12px;font-size:13px}
+.btn-full{width:100%;justify-content:center}
+
+/* TOPBAR */
+.topbar{border-bottom:1px solid var(--line);background:rgba(11,11,13,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50}
+.topbar-inner{max-width:860px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:14px;font-weight:700}.brand span{color:var(--text-3);font-weight:400;margin-left:6px}
+
+/* LAYOUT */
+.container{max-width:860px;margin:0 auto;padding:36px 20px 80px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-.03em}
+
+/* SESTAVA CARD */
+.s-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.s-header{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
+.s-header:hover{background:rgba(255,255,255,.02)}
+.s-name{flex:1;font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-meta{font-size:12px;color:var(--text-3);white-space:nowrap}
+.s-chevron{color:var(--text-3);transition:transform .2s;flex-shrink:0}
+.s-chevron.open{transform:rotate(90deg)}
+
+/* TOGGLE */
+.toggle{position:relative;width:36px;height:22px;flex-shrink:0;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.t-track{position:absolute;inset:0;background:var(--surface-3);border:1px solid var(--line);border-radius:11px;transition:background .2s}
+.toggle input:checked~.t-track{background:var(--green);border-color:var(--green)}
+.t-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked~.t-track .t-thumb{transform:translateX(14px)}
+
+/* BODY */
+.s-body{border-top:1px solid var(--line);padding:20px;display:flex;flex-direction:column;gap:20px}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+
+/* INPUTS */
+.inp{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 13px;color:var(--text);font-size:14px;font-family:inherit;outline:none;width:100%}
+.inp:focus{border-color:var(--line-s)}
+.row{display:flex;gap:10px;align-items:center}
+.row .inp{flex:1}
+
+/* PRODUCTS */
+.prod-list{display:flex;flex-direction:column;gap:8px}
+.prod-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+.prod-img{width:52px;height:52px;object-fit:contain;border-radius:6px;background:var(--surface-3);flex-shrink:0}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.prod-ceny{text-align:right;flex-shrink:0}
+.prod-cena-bez{font-size:14px;font-weight:700;color:var(--text)}
+.prod-cena-s{font-size:11px;color:var(--text-3);margin-top:2px}
+
+/* SEARCH PREVIEW */
+.preview-box{margin-top:8px;background:var(--surface-2);border:1px solid var(--line-s);border-radius:10px;padding:14px;display:flex;gap:14px}
+.preview-box img{width:64px;height:64px;object-fit:contain;border-radius:8px;background:var(--surface-3);flex-shrink:0}
+.preview-info{flex:1;min-width:0}
+.preview-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.preview-ceny{font-size:13px;color:var(--text-3);margin-bottom:10px}
+.preview-ceny b{color:var(--text);font-weight:600}
+.preview-inputs{display:flex;gap:10px;flex-wrap:wrap}
+.preview-field{display:flex;flex-direction:column;gap:4px}
+.preview-field label{font-size:11px;color:var(--text-3);font-weight:500}
+.preview-field .inp{width:140px}
+.not-found{font-size:13px;color:var(--red);margin-top:6px;padding:8px 0}
+
+/* PRICE SUMMARY */
+.price-inputs{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.price-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.price-field label{font-size:11px;color:var(--text-3);font-weight:500;letter-spacing:.02em}
+.price-box{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px}
+.price-row+.price-row{border-top:1px solid var(--line)}
+.pl{color:var(--text-3)}.pv{font-weight:600}
+.pv-main{font-weight:700;font-size:16px;color:var(--text)}
+.pv-sub{font-size:12px;color:var(--text-3);font-weight:400}
+.pv-strike{text-decoration:line-through;color:var(--text-3)}
+.pv-akcni{color:var(--red)}
+.pv-sleva{color:var(--green)}
+
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:56px 20px;color:var(--text-3)}
+.empty h3{font-size:17px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.loading{text-align:center;padding:40px;color:var(--text-3);font-size:14px}
+
+@media(max-width:600px){
+  .preview-inputs,.price-inputs{flex-direction:column}
+  .preview-field .inp,.price-field .inp{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo">Drozda Nářadí</div>
+    <div class="login-title">Akční sestavy</div>
+    <input type="password" class="login-input" id="pwd" placeholder="Heslo"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Nesprávné heslo</div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">Přihlásit</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">Drozda Nářadí <span>admin</span></div>
+      <button class="btn btn-ghost" onclick="logout()">Odhlásit</button>
+    </div>
+  </header>
+  <main class="container">
+    <div class="page-header">
+      <h1 class="page-title">Akční sestavy</h1>
+      <button class="btn btn-primary" onclick="novaSestava()">+ Nová sestava</button>
+    </div>
+    <div id="list"><div class="loading">Načítání…</div></div>
+  </main>
+</div>
+
+<script>
+const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
+const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
+const PWD    = 'drozda2026';
+
+const sb = supabase.createClient(SB_URL, SB_KEY);
+let db = {};
+let openId = null;
+
+// ── AUTH ─────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('pwd').value === PWD) {
+    sessionStorage.setItem('auth','1');
+    document.getElementById('login').hidden = true;
+    document.getElementById('app').hidden   = false;
+    init();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pwd').value = '';
+  }
+}
+function logout(){ sessionStorage.removeItem('auth'); location.reload(); }
+
+// ── INIT ─────────────────────────────────────
+async function init() {
+  db = await fetch('produkty.json').then(r => r.json());
+  await refresh();
+}
+
+// ── DATA ─────────────────────────────────────
+async function getAll() {
+  const { data } = await sb.from('sestavy')
+    .select('*, produkty_sestavy(*)')
+    .order('created_at');
+  return data || [];
+}
+async function refresh() { render(await getAll()); }
+
+async function novaSestava() {
+  const { data } = await sb.from('sestavy')
+    .insert({ nazev: 'Nová sestava', aktivni: true, akcni_cena: 0 })
+    .select().single();
+  if (data) { openId = data.id; await refresh(); }
+}
+
+async function delSestava(id) {
+  if (!confirm('Smazat sestavu i se všemi produkty?')) return;
+  await sb.from('sestavy').delete().eq('id', id);
+  if (openId === id) openId = null;
+  await refresh();
+}
+
+async function saveField(id, field, val) {
+  await sb.from('sestavy').update({ [field]: val }).eq('id', id);
+}
+
+async function addProdukt(sid, artikl, bezDph, sDph) {
+  const p = db[artikl];
+  if (!p) return false;
+  await sb.from('produkty_sestavy').insert({
+    sestava_id: sid,
+    artiklove_cislo: artikl,
+    nazev: p.n,
+    foto_url: p.f,
+    cena_bez_dph: bezDph ?? p.b ?? 0,
+    cena_s_dph:   sDph   ?? p.s ?? 0,
+    odkaz_eshop: p.u || '',
+    poradi: Date.now()
+  });
+  return true;
+}
+
+async function delProdukt(id) {
+  await sb.from('produkty_sestavy').delete().eq('id', id);
+  await refresh();
+}
+
+// ── HELPERS ──────────────────────────────────
+function fmtBez(n){ return fmt(n) + ' Kč bez DPH'; }
+function fmtS(n)  { return fmt(n) + ' Kč s DPH'; }
+function fmt(n)   { return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}); }
+
+function calc(s) {
+  const prods  = s.produkty_sestavy || [];
+  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
+  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+  const akcni  = Number(s.akcni_cena) || 0;
+  const akcniS = Math.round(akcni * 1.21);
+  const slevaBez = celBez - akcni;
+  const slevaS   = celS   - akcniS;
+  const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
+  return { celBez, celS, akcni, akcniS, slevaBez, slevaS, pct };
+}
+
+// ── RENDER ───────────────────────────────────
+function render(sestavy) {
+  const el = document.getElementById('list');
+  if (!sestavy.length) {
+    el.innerHTML = `<div class="empty"><h3>Žádné sestavy</h3><p>Začni kliknutím na „+ Nová sestava"</p></div>`;
+    return;
+  }
+  el.innerHTML = '';
+  sestavy.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 's-card'; div.id = 'c-' + s.id;
+    div.innerHTML = cardHTML(s);
+    el.appendChild(div);
+    if (s.id === openId) {
+      div.querySelector('.s-body').style.display = 'flex';
+      div.querySelector('.s-chevron').classList.add('open');
+    }
+  });
+}
+
+function cardHTML(s) {
+  const { celBez, celS, akcni, akcniS, slevaBez, slevaS, pct } = calc(s);
+  const prods = s.produkty_sestavy || [];
+
+  const prodsHTML = prods.length
+    ? prods.map(p => `
+      <div class="prod-item">
+        <img class="prod-img" src="${p.foto_url}" onerror="this.style.opacity='.2'" alt="">
+        <div class="prod-info">
+          <div class="prod-name">${p.nazev}</div>
+          <div class="prod-sub">Artikl: ${p.artiklove_cislo}</div>
+        </div>
+        <div class="prod-ceny">
+          <div class="prod-cena-bez">${fmt(p.cena_bez_dph)} Kč</div>
+          <div class="prod-cena-s">${fmt(p.cena_s_dph)} Kč s DPH</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="ev(event);delProd('${p.id}')" title="Odebrat">✕</button>
+      </div>`).join('')
+    : `<div style="color:var(--text-3);font-size:13px;padding:4px 0">Zatím žádné produkty.</div>`;
+
+  return `
+  <div class="s-header" onclick="toggleCard('${s.id}')">
+    <label class="toggle" onclick="ev(event)">
+      <input type="checkbox" ${s.aktivni?'checked':''} onchange="saveField('${s.id}','aktivni',this.checked)">
+      <div class="t-track"><div class="t-thumb"></div></div>
+    </label>
+    <div class="s-name">${s.nazev}</div>
+    <div class="s-meta">${prods.length} pol. · ${fmt(celBez)} Kč</div>
+    <svg class="s-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+
+  <div class="s-body" style="display:none">
+
+    <!-- Název -->
+    <div>
+      <div class="sec-label">Název sestavy</div>
+      <div class="row">
+        <input class="inp" id="n-${s.id}" value="${s.nazev.replace(/"/g,'&quot;')}"
+               onkeydown="if(event.key==='Enter')saveNazev('${s.id}')">
+        <button class="btn btn-secondary btn-sm" onclick="saveNazev('${s.id}')">Uložit</button>
+        <button class="btn btn-danger btn-sm" onclick="ev(event);delS('${s.id}')">Smazat</button>
+      </div>
+    </div>
+
+    <!-- Produkty -->
+    <div>
+      <div class="sec-label">Produkty v sestavě</div>
+      <div class="prod-list">${prodsHTML}</div>
+    </div>
+
+    <!-- Přidat produkt -->
+    <div>
+      <div class="sec-label">Přidat produkt</div>
+      <div class="row">
+        <input class="inp" id="a-${s.id}" placeholder="Artikl číslo Milwaukee (např. 4933464979)"
+               style="font-family:ui-monospace,monospace"
+               oninput="preview('${s.id}')"
+               onkeydown="if(event.key==='Enter')doAdd('${s.id}')">
+        <button class="btn btn-primary btn-sm" onclick="doAdd('${s.id}')">Přidat</button>
+      </div>
+      <div id="pv-${s.id}"></div>
+    </div>
+
+    <!-- Ceny -->
+    <div>
+      <div class="sec-label">Akční cena sestavy</div>
+      <div class="price-inputs">
+        <div class="price-field">
+          <label>Akční cena BEZ DPH (Kč) — hlavní</label>
+          <input class="inp" type="number" id="ac-${s.id}" value="${akcni}" min="0" step="1"
+                 onblur="saveAkcni('${s.id}')" onkeydown="if(event.key==='Enter')this.blur()">
+        </div>
+        <div class="price-field" style="justify-content:flex-end">
+          <label>S DPH (21 %) — vypočteno</label>
+          <input class="inp" id="ac-s-${s.id}" value="${akcniS}" readonly
+                 style="color:var(--text-3);cursor:default">
+        </div>
+      </div>
+      <div class="price-box">
+        <div class="price-row">
+          <span class="pl">Ceníková cena celkem</span>
+          <span>
+            <span class="pv pv-main pv-strike">${fmt(celBez)} Kč</span>
+            <span class="pv-sub"> / ${fmt(celS)} s DPH</span>
+          </span>
+        </div>
+        <div class="price-row">
+          <span class="pl">Akční cena</span>
+          <span>
+            <span class="pv pv-main pv-akcni">${fmt(akcni)} Kč</span>
+            <span class="pv-sub"> / ${fmt(akcniS)} s DPH</span>
+          </span>
+        </div>
+        <div class="price-row">
+          <span class="pl">Sleva</span>
+          <span>
+            <span class="pv pv-sleva">${fmt(slevaBez)} Kč (${pct} %)</span>
+            <span class="pv-sub"> / ${fmt(slevaS)} s DPH</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ── INTERACTIONS ─────────────────────────────
+function ev(e){ e.stopPropagation(); }
+
+function toggleCard(id) {
+  const body = document.querySelector('#c-'+id+' .s-body');
+  const chev = document.querySelector('#c-'+id+' .s-chevron');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+  chev.classList.toggle('open', !isOpen);
+  openId = isOpen ? null : id;
+}
+
+async function saveNazev(id) {
+  const val = document.getElementById('n-'+id).value.trim();
+  if (!val) return;
+  await saveField(id, 'nazev', val);
+  document.querySelector('#c-'+id+' .s-name').textContent = val;
+}
+
+async function saveAkcni(id) {
+  const bez = parseFloat(document.getElementById('ac-'+id).value)||0;
+  const sDph = Math.round(bez * 1.21);
+  const sDphEl = document.getElementById('ac-s-'+id);
+  if (sDphEl) sDphEl.value = sDph;
+  await saveField(id, 'akcni_cena', bez);
+  await refresh();
+  reopenCard(id);
+}
+
+function preview(sid) {
+  const artikl = document.getElementById('a-'+sid).value.trim();
+  const el = document.getElementById('pv-'+sid);
+  if (!artikl || artikl.length < 4) { el.innerHTML=''; return; }
+  const p = db[artikl];
+  if (!p) {
+    el.innerHTML = `<div class="not-found">Artikl ${artikl} nebyl nalezen v ceníku Milwaukee.</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="preview-box">
+      <img src="${p.f}" onerror="this.style.opacity='.2'" alt="">
+      <div class="preview-info">
+        <div class="preview-name">${p.n}</div>
+        <div class="preview-ceny">
+          Ceníková: <b>${fmt(p.b)} Kč bez DPH</b> · ${fmt(p.s)} Kč s DPH
+        </div>
+        <div class="preview-inputs">
+          <div class="preview-field">
+            <label>Cena BEZ DPH (Kč) — hlavní</label>
+            <input class="inp" type="number" id="pb-${sid}" value="${p.b||0}" min="0" step="1">
+          </div>
+          <div class="preview-field">
+            <label>Cena S DPH (Kč)</label>
+            <input class="inp" type="number" id="ps-${sid}" value="${p.s||0}" min="0" step="1">
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function doAdd(sid) {
+  const artikl = document.getElementById('a-'+sid).value.trim();
+  if (!artikl) return;
+  const bezEl = document.getElementById('pb-'+sid);
+  const sDphEl = document.getElementById('ps-'+sid);
+  const bez  = bezEl  ? parseFloat(bezEl.value)||0  : null;
+  const sDph = sDphEl ? parseFloat(sDphEl.value)||0 : null;
+  const ok = await addProdukt(sid, artikl, bez, sDph);
+  if (!ok) { alert('Artikl '+artikl+' nebyl nalezen v databázi Milwaukee.'); return; }
+  document.getElementById('a-'+sid).value = '';
+  document.getElementById('pv-'+sid).innerHTML = '';
+  await refresh();
+  reopenCard(sid);
+}
+
+async function delProd(id) { await delProdukt(id); }
+async function delS(id) { await delSestava(id); }
+
+function reopenCard(id) {
+  setTimeout(() => {
+    const body = document.querySelector('#c-'+id+' .s-body');
+    const chev = document.querySelector('#c-'+id+' .s-chevron');
+    if (body) { body.style.display='flex'; chev && chev.classList.add('open'); }
+  }, 50);
+}
+
+// ── BOOT ─────────────────────────────────────
+if (sessionStorage.getItem('auth')==='1') {
+  document.getElementById('login').hidden = true;
+  document.getElementById('app').hidden   = false;
+  init();
+}
+</script>
+</body>
+</html>
