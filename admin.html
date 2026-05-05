@@ -138,7 +138,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 </div>
 
 <!-- APP -->
-<div id="app" hidden>
+<div id="app" style="display:none">
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">Drozda Nářadí <span>admin</span></div>
@@ -166,11 +166,10 @@ let openId = null;
 // ── AUTH ─────────────────────────────────────
 function doLogin() {
   const val = document.getElementById('pwd').value;
-  alert('Zadáno: [' + val + '] Očekáváno: [' + PWD + ']');
   if (val === PWD) {
     sessionStorage.setItem('auth','1');
-    document.getElementById('login').hidden = true;
-    document.getElementById('app').hidden   = false;
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display   = 'block';
     init();
   } else {
     document.getElementById('login-err').style.display = 'block';
@@ -466,8 +465,8 @@ function reopenCard(id) {
 
 // ── BOOT ─────────────────────────────────────
 if (sessionStorage.getItem('auth')==='1') {
-  document.getElementById('login').hidden = true;
-  document.getElementById('app').hidden   = false;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
   init();
 }
 </script>
