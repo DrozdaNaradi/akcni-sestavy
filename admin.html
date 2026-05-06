@@ -126,19 +126,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 <body>
 
 <!-- LOGIN -->
-<div id="login">
-  <div class="login-card">
-    <div class="login-logo">Drozda Nářadí</div>
-    <div class="login-title">Akční sestavy</div>
-    <input type="password" class="login-input" id="pwd" placeholder="Heslo"
-           onkeydown="if(event.key==='Enter')doLogin()">
-    <div class="login-err" id="login-err">Nesprávné heslo</div>
-    <button class="btn btn-primary btn-full" onclick="doLogin()">Přihlásit</button>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none">
+<div id="app">
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">Drozda Nářadí <span>admin</span></div>
@@ -146,6 +134,47 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
     </div>
   </header>
   <main class="container">
+
+    <!-- NASTAVENÍ STRÁNKY -->
+    <div class="s-card" style="margin-bottom:20px">
+      <div class="s-header" onclick="toggleSettings()">
+        <div class="s-name">Nastavení textů stránky</div>
+        <svg class="s-chevron" id="settings-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="s-body" id="settings-body" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div class="sec-label">Brand (levý topbar)</div>
+            <input class="inp" id="set-brand" placeholder="Drozda Nářadí">
+          </div>
+          <div>
+            <div class="sec-label">Presents (vedle brand)</div>
+            <input class="inp" id="set-presents" placeholder="Presents">
+          </div>
+          <div>
+            <div class="sec-label">Tag (pravý topbar)</div>
+            <input class="inp" id="set-tag" placeholder="Akční sestavy">
+          </div>
+          <div>
+            <div class="sec-label">Eyebrow (nad nadpisem)</div>
+            <input class="inp" id="set-eyebrow" placeholder="Milwaukee Tool">
+          </div>
+          <div>
+            <div class="sec-label">Nadpis H1</div>
+            <input class="inp" id="set-h1" placeholder="Akční sestavy">
+          </div>
+          <div>
+            <div class="sec-label">Podnadpis</div>
+            <input class="inp" id="set-subtitle" placeholder="Výhodné sady nářadí...">
+          </div>
+        </div>
+        <div style="margin-top:4px">
+          <button class="btn btn-primary" onclick="saveSettings()">Uložit nastavení</button>
+          <span id="settings-msg" style="font-size:13px;color:var(--green);margin-left:12px;display:none">Uloženo ✓</span>
+        </div>
+      </div>
+    </div>
+
     <div class="page-header">
       <h1 class="page-title">Akční sestavy</h1>
       <button class="btn btn-primary" onclick="novaSestava()">+ Nová sestava</button>
@@ -183,7 +212,45 @@ async function init() {
   try { sb = supabase.createClient(SB_URL, SB_KEY); }
   catch(e) { alert('Chyba připojení k databázi: ' + e.message); return; }
   db = await fetch('produkty.json').then(r => r.json());
+  await loadSettingsAdmin();
   await refresh();
+}
+
+// ── PAGE SETTINGS ─────────────────────────────
+function toggleSettings() {
+  const body = document.getElementById('settings-body');
+  const chev = document.getElementById('settings-chev');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+  chev.classList.toggle('open', !isOpen);
+}
+
+async function loadSettingsAdmin() {
+  try {
+    const { data } = await sb.from('page_settings').select('*').eq('id', 1).maybeSingle();
+    if (!data) return;
+    const fields = ['brand','presents','tag','eyebrow','h1','subtitle'];
+    fields.forEach(f => {
+      const el = document.getElementById('set-' + f);
+      if (el && data[f]) el.value = data[f];
+    });
+  } catch(e) { /* ignore */ }
+}
+
+async function saveSettings() {
+  const vals = {
+    id: 1,
+    brand:    document.getElementById('set-brand').value.trim(),
+    presents: document.getElementById('set-presents').value.trim(),
+    tag:      document.getElementById('set-tag').value.trim(),
+    eyebrow:  document.getElementById('set-eyebrow').value.trim(),
+    h1:       document.getElementById('set-h1').value.trim(),
+    subtitle: document.getElementById('set-subtitle').value.trim(),
+  };
+  await sb.from('page_settings').upsert(vals);
+  const msg = document.getElementById('settings-msg');
+  msg.style.display = 'inline';
+  setTimeout(() => { msg.style.display = 'none'; }, 2500);
 }
 
 // ── DATA ─────────────────────────────────────

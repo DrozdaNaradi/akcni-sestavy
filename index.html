@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Akční Sestavy – Drozda Nářadí</title>
 <meta name="description" content="Výhodné sady nářadí Milwaukee za akční ceny. Drozda Nářadí."/>
+<script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -12,13 +13,13 @@
 <style>
 :root{
   --red:#DB011C;
-  --yellow:#FFD60A;
+  --sale-color:#FFD60A;
   --bg:#0a0a0a;
   --container-bg:#1e1e1e;
   --card-bg:#1f1f1f;
-  --border:#2c2c2c;
-  --border-soft:#1c1c1c;
-  --card-border:#2f2f2f;
+  --border:#3a3a3a;
+  --border-soft:#2a2a2a;
+  --card-border:#3d3d3d;
   --text:#f5f5f5;
   --text-2:#bdbdbd;
   --text-3:#9a9a9a;
@@ -26,49 +27,68 @@
   --text-5:#7a7a7a;
   --text-6:#666;
 }
+.light{
+  --sale-color:#b87000;
+  --bg:#f8f8f8;
+  --container-bg:#eeeeee;
+  --card-bg:#ffffff;
+  --border:#c0c0c0;
+  --border-soft:#d8d8d8;
+  --card-border:#c8c8c8;
+  --text:#111111;
+  --text-2:#333333;
+  --text-3:#555555;
+  --text-4:#777777;
+  --text-5:#999999;
+  --text-6:#bbbbbb;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
 
 /* TOPBAR */
 .topbar{border-bottom:1px solid var(--border-soft);font-size:14px}
 .topbar-inner{max-width:1280px;margin:0 auto;padding:32px 80px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;gap:10px;align-items:baseline;color:#fff}
+.brand{display:flex;gap:10px;align-items:baseline;color:var(--text)}
 .brand strong{font-weight:700;letter-spacing:-.01em}
 .brand span{color:var(--text-6)}
-.topbar-tag{color:#999;font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-tag{color:var(--text-4);font-weight:500}
+.theme-btn{background:var(--container-bg);border:1px solid var(--border);color:var(--text-3);font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:border-color .15s}
+.theme-btn:hover{border-color:var(--text-4)}
 
 /* HERO */
 .hero{max-width:1280px;margin:0 auto;padding:36px 60px 28px}
 .eyebrow{color:var(--red);font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;margin-bottom:10px}
-.hero h1{font-size:58px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 12px;color:#fff}
+.hero h1{font-size:58px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 12px;color:var(--text)}
 .hero p{font-size:15px;color:var(--text-3);max-width:560px;line-height:1.45;margin:0}
 
 /* SETS */
-.sets{max-width:1280px;margin:0 auto;padding:12px 60px 48px;display:flex;flex-direction:column;gap:16px}
+.sets{max-width:1280px;margin:0 auto;padding:12px 60px 48px;display:flex;flex-direction:column;gap:32px}
 
 /* SET */
 .set{background:var(--container-bg);border:1px solid var(--border);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px}
 .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--border);gap:20px;flex-wrap:wrap}
-.set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1}
+.set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:var(--text)}
 .set-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .save-block{text-align:right}
 .save-label{color:var(--text-3);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
-.save-value{color:#fff;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.save-value{color:var(--text);font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
 .save-pct{background:var(--red);color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
 
 /* PRODUCT GRID */
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-.card-img{background:#fafafa;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.card-img{background:#fafafa;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:zoom-in;flex-shrink:0}
 .card-img img{width:100%;height:100%;object-fit:contain;padding:6px}
-.card-body{padding:16px 18px 20px;display:flex;flex-direction:column;gap:12px;flex:1}
-.sku{color:var(--text-4);font-size:12px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.02em}
-.prod-name{font-size:15px;font-weight:500;line-height:1.35;color:#f0f0f0;margin:0;min-height:60px;flex:1}
-.price-row{border-top:1px solid var(--border);padding-top:12px;margin-top:auto}
-.price-main{font-size:22px;font-weight:700;color:#fff}
+.card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--card-border);gap:8px}
+.sku{color:var(--text-4);font-size:11px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-link{color:var(--red);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.detail-link:hover{text-decoration:underline}
+.card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.prod-name{font-size:14px;font-weight:500;line-height:1.35;color:var(--text-2);margin:0;flex:1}
+.price-row{border-top:1px solid var(--card-border);padding-top:10px;margin-top:auto}
+.price-main{font-size:20px;font-weight:700;color:var(--text)}
 .price-vat{font-size:12px;color:var(--text-4);margin-top:2px}
-.cta{color:var(--red);font-size:13px;font-weight:600;padding-top:12px;border-top:1px solid var(--border);margin-top:4px;display:flex;align-items:center;gap:6px;text-decoration:none}
-.cta:hover{text-decoration:underline}
 
 /* SUMMARY */
 .summary{padding-top:24px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end}
@@ -76,9 +96,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .sum-col.right{text-align:right;align-items:flex-end}
 .sum-label{color:var(--text-2);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:4px}
 .sum-sublabel{color:var(--text-5);font-size:11px;font-weight:500;letter-spacing:.02em;line-height:1.2;margin-bottom:10px}
-.sum-value{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0}
+.sum-value{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:var(--text)}
 .sum-value.list{color:var(--text-5);text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
-.sum-value.sale{color:var(--yellow)}
+.sum-value.sale{color:var(--sale-color)}
 .sum-vat{font-size:12px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:10px;line-height:1.2}
 
 /* FOOTER */
@@ -89,13 +109,19 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .empty h2{font-size:20px;font-weight:600;color:var(--text-3);margin-bottom:8px}
 .loading{text-align:center;padding:80px 20px;color:var(--text-5);font-size:15px}
 
+/* LIGHTBOX */
+#lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.open{display:flex}
+#lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:12px;background:#fff;cursor:default}
+#lb-close{position:fixed;top:20px;right:24px;color:#fff;font-size:26px;line-height:1;background:none;border:none;cursor:pointer;opacity:.6;font-family:inherit;padding:4px 8px}
+#lb-close:hover{opacity:1}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .topbar-inner{padding:20px 24px}
   .hero{padding:36px 24px 24px}
   .hero h1{font-size:48px}
-  .hero p{font-size:15px}
-  .sets{padding:12px 16px 48px;gap:16px}
+  .sets{padding:12px 16px 48px;gap:24px}
   .set{padding:20px;border-radius:16px}
   .set-name{font-size:28px}
   .set-header{flex-direction:column;align-items:flex-start}
@@ -108,36 +134,73 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .page-footer{padding:24px}
 }
 @media(max-width:540px){
-  .grid{grid-template-columns:1fr}
-  .hero h1{font-size:48px}
-  .set-name{font-size:26px}
-  .sum-value{font-size:44px}
-  .sum-value.list{font-size:24px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero h1{font-size:40px}
+  .set-name{font-size:24px}
+  .sum-value{font-size:34px}
+  .sum-value.list{font-size:20px}
+  .topbar-inner{flex-wrap:wrap;gap:10px}
 }
 </style>
 </head>
 <body>
 
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><strong>Drozda Nářadí</strong><span>Presents</span></div>
-    <div class="topbar-tag">Akční sestavy</div>
+    <div class="brand"><strong id="pg-brand">Drozda Nářadí</strong><span id="pg-presents">Presents</span></div>
+    <div class="topbar-right">
+      <div class="topbar-tag" id="pg-tag">Akční sestavy</div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">Světlý režim</button>
+    </div>
   </div>
 </header>
 
 <section class="hero">
-  <div class="eyebrow">Milwaukee Tool</div>
-  <h1>Akční sestavy</h1>
-  <p>Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
+  <div class="eyebrow" id="pg-eyebrow">Milwaukee Tool</div>
+  <h1 id="pg-h1">Akční sestavy</h1>
+  <p id="pg-subtitle">Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
 </section>
 
 <main class="sets" id="sestavy">
   <div class="loading">Načítání…</div>
 </main>
 
-<footer class="page-footer">© Drozda Nářadí · Akce platí jen po omezenou dobu.</footer>
+<footer class="page-footer">© <span id="pg-footer-brand">Drozda Nářadí</span> · Akce platí jen po omezenou dobu.</footer>
 
 <script>
+// Theme — init button label after DOM ready
+(function(){
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = document.documentElement.classList.contains('light') ? 'Tmavý režim' : 'Světlý režim';
+})();
+
+function toggleTheme() {
+  const light = document.documentElement.classList.toggle('light');
+  localStorage.setItem('theme', light ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = light ? 'Tmavý režim' : 'Světlý režim';
+}
+
+// Lightbox
+function openLightbox(el) {
+  const src = el.dataset.src;
+  const alt = el.dataset.alt;
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-img').alt = alt || '';
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
 const sb = supabase.createClient(SB_URL, SB_KEY);
@@ -146,7 +209,24 @@ function fmt(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigi
 function fmtKc(n){ return fmt(n) + ',- Kč'; }
 function fmtKcDph(n){ return fmt(n) + ',- Kč s DPH'; }
 
+async function loadSettings() {
+  try {
+    const { data } = await sb.from('page_settings').select('*').eq('id', 1).maybeSingle();
+    if (!data) return;
+    const set = (id, val) => { if (val) { const el = document.getElementById(id); if (el) el.textContent = val; } };
+    set('pg-brand', data.brand);
+    set('pg-footer-brand', data.brand);
+    set('pg-presents', data.presents);
+    set('pg-tag', data.tag);
+    set('pg-eyebrow', data.eyebrow);
+    set('pg-h1', data.h1);
+    set('pg-subtitle', data.subtitle);
+  } catch(e) { /* keep defaults */ }
+}
+
 async function load() {
+  await loadSettings();
+
   const { data: sestavy } = await sb
     .from('sestavy')
     .select('*, produkty_sestavy(*)')
@@ -171,24 +251,26 @@ async function load() {
 
     const prodsHTML = prods.map(p => `
       <div class="card">
-        <div class="card-img">
-          <img src="${p.foto_url}" alt="${p.nazev}" onerror="this.parentElement.style.opacity='.2'">
+        <div class="card-img" data-src="${esc(p.foto_url)}" data-alt="${esc(p.nazev)}" onclick="openLightbox(this)">
+          <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
+        </div>
+        <div class="card-meta">
+          <span class="sku">${esc(p.artiklove_cislo)}</span>
+          ${p.odkaz_eshop ? `<a class="detail-link" href="${esc(p.odkaz_eshop)}" target="_blank" rel="noopener">Detail ↗</a>` : ''}
         </div>
         <div class="card-body">
-          <div class="sku">${p.artiklove_cislo}</div>
-          <h3 class="prod-name">${p.nazev}</h3>
+          <h3 class="prod-name">${esc(p.nazev)}</h3>
           <div class="price-row">
             <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
             <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
           </div>
-          ${p.odkaz_eshop ? `<a class="cta" href="${p.odkaz_eshop}" target="_blank" rel="noopener">Detail produktu <span>↗</span></a>` : ''}
         </div>
       </div>`).join('');
 
     return `
     <article class="set">
       <header class="set-header">
-        <h2 class="set-name">${s.nazev}</h2>
+        <h2 class="set-name">${esc(s.nazev)}</h2>
         <div class="set-header-right">
           <div class="save-block">
             <div class="save-label">Ušetříte</div>
