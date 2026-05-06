@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Akční Sestavy – Drozda Nářadí</title>
 <meta name="description" content="Výhodné sady nářadí Milwaukee za akční ceny. Drozda Nářadí."/>
-<script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light');</script>
+<script>if(localStorage.getItem('theme')!=='dark')document.documentElement.classList.add('light');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
   --text-6:#666;
 }
 .light{
-  --sale-color:#b87000;
+  --sale-color:#D4900A;
   --bg:#f8f8f8;
   --container-bg:#eeeeee;
   --card-bg:#ffffff;
@@ -95,11 +95,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .sum-col{display:flex;flex-direction:column;min-width:0}
 .sum-col.right{text-align:right;align-items:flex-end}
 .sum-label{color:var(--text-2);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:4px}
-.sum-sublabel{color:var(--text-5);font-size:11px;font-weight:500;letter-spacing:.02em;line-height:1.2;margin-bottom:10px}
+.sum-sublabel{color:var(--text-5);font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:10px}
 .sum-value{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:var(--text)}
 .sum-value.list{color:var(--text-5);text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
 .sum-value.sale{color:var(--sale-color)}
-.sum-vat{font-size:12px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:10px;line-height:1.2}
+.sum-vat{font-size:14px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:10px;line-height:1.2}
 
 /* FOOTER */
 .page-footer{max-width:1280px;margin:0 auto;padding:40px 80px 80px;color:var(--text-6);font-size:12px;border-top:1px solid var(--border-soft)}
