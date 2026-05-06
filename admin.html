@@ -247,10 +247,17 @@ async function saveSettings() {
     h1:       document.getElementById('set-h1').value.trim(),
     subtitle: document.getElementById('set-subtitle').value.trim(),
   };
-  await sb.from('page_settings').upsert(vals);
+  const { error } = await sb.from('page_settings').upsert(vals);
   const msg = document.getElementById('settings-msg');
+  if (error) {
+    msg.textContent = '⚠ Chyba: ' + error.message;
+    msg.style.color = 'var(--red)';
+  } else {
+    msg.textContent = 'Uloženo ✓';
+    msg.style.color = 'var(--green)';
+  }
   msg.style.display = 'inline';
-  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  setTimeout(() => { msg.style.display = 'none'; msg.textContent = 'Uloženo ✓'; msg.style.color = 'var(--green)'; }, 4000);
 }
 
 // ── DATA ─────────────────────────────────────
