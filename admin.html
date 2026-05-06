@@ -126,7 +126,18 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 <body>
 
 <!-- LOGIN -->
-<div id="app">
+<div id="login" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">Drozda Nářadí</div>
+    <div class="login-title">Admin přístup</div>
+    <div class="login-err" id="login-err">Nesprávné heslo</div>
+    <input class="login-input" type="password" id="pwd" placeholder="Heslo"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary btn-full" style="margin-top:4px" onclick="doLogin()">Přihlásit se</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">Drozda Nářadí <span>admin</span></div>
@@ -186,7 +197,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 <script>
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
-const PWD    = 'drozda2026';
+const PWD    = 'hdzTVtztz67-JSGg';
 
 let sb = null;
 let db = {};
@@ -203,6 +214,7 @@ function doLogin() {
   } else {
     document.getElementById('login-err').style.display = 'block';
     document.getElementById('pwd').value = '';
+    document.getElementById('pwd').focus();
   }
 }
 function logout(){ sessionStorage.removeItem('auth'); location.reload(); }
@@ -538,7 +550,12 @@ function reopenCard(id) {
 }
 
 // ── BOOT ─────────────────────────────────────
-init();
+if (sessionStorage.getItem('auth') === '1') {
+  document.getElementById('app').style.display = 'block';
+  init();
+} else {
+  document.getElementById('login').style.display = 'flex';
+}
 </script>
 </body>
 </html>
