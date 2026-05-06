@@ -121,6 +121,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
   .preview-inputs,.price-inputs{flex-direction:column}
   .preview-field .inp,.price-field .inp{width:100%}
 }
+
+/* ICON PICKER */
+.icon-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.icon-opt{width:64px;cursor:pointer;border-radius:10px;border:2px solid transparent;padding:6px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .15s}
+.icon-opt:hover{border-color:var(--line-s)}
+.icon-opt.selected{border-color:var(--red)}
+.icon-opt img{width:40px;height:40px;object-fit:contain}
+.icon-opt span{font-size:9px;color:var(--text-3);text-align:center;line-height:1.2;word-break:break-all}
 </style>
 </head>
 <body>
@@ -218,6 +226,34 @@ function doLogin() {
   }
 }
 function logout(){ sessionStorage.removeItem('auth'); location.reload(); }
+
+// ── ICONS ────────────────────────────────────
+const ICONS = [
+  { id:'automechanik',  label:'Automechanik' },
+  { id:'elektrikar',    label:'Elektrikář' },
+  { id:'instaleter',    label:'Instalatér' },
+  { id:'ostatni',       label:'Ostatní' },
+  { id:'stavba',        label:'Stavba' },
+  { id:'stavebnictvi',  label:'Stavebnictví' },
+  { id:'tesar-truhlar', label:'Tesař/Truhlář' },
+  { id:'zahrada',       label:'Zahrada' },
+];
+
+function iconPickerHTML(sid, current) {
+  return ICONS.map(ic => `
+    <div class="icon-opt${ic.id === current ? ' selected' : ''}"
+         id="ico-${sid}-${ic.id}"
+         onclick="pickIcon('${sid}','${ic.id}')">
+      <img src="icons/${ic.id}.png" alt="${ic.label}">
+      <span>${ic.label}</span>
+    </div>`).join('');
+}
+
+async function pickIcon(sid, iconId) {
+  await saveField(sid, 'ikona', iconId);
+  document.querySelectorAll(`[id^="ico-${sid}-"]`).forEach(el => el.classList.remove('selected'));
+  document.getElementById(`ico-${sid}-${iconId}`).classList.add('selected');
+}
 
 // ── INIT ─────────────────────────────────────
 async function init() {
@@ -389,6 +425,12 @@ function cardHTML(s) {
   </div>
 
   <div class="s-body" style="display:none">
+
+    <!-- Ikona -->
+    <div>
+      <div class="sec-label">Ikona sestavy</div>
+      <div class="icon-grid">${iconPickerHTML(s.id, s.ikona || '')}</div>
+    </div>
 
     <!-- Název -->
     <div>
