@@ -6,8 +6,9 @@
 <title>Admin – Akční Sestavy | Drozda Nářadí</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
 :root{
   --bg:#0b0b0d;--surface:#161618;--surface-2:#1d1d20;--surface-3:#242428;
@@ -210,6 +211,7 @@ const PWD    = 'hdzTVtztz67-JSGg';
 let sb = null;
 let db = {};
 let openId = null;
+let allSestavy = [];
 
 // ── AUTH ─────────────────────────────────────
 function doLogin() {
@@ -315,7 +317,7 @@ async function getAll() {
     .order('created_at');
   return data || [];
 }
-async function refresh() { render(await getAll()); }
+async function refresh() { allSestavy = await getAll(); render(allSestavy); }
 
 async function novaSestava() {
   const { data } = await sb.from('sestavy')
@@ -421,6 +423,9 @@ function cardHTML(s) {
     </label>
     <div class="s-name">${s.nazev}</div>
     <div class="s-meta">${prods.length} pol. · ${fmt(celBez)} Kč</div>
+    <button class="btn btn-danger btn-sm" onclick="ev(event);delS('${s.id}')" title="Smazat sestavu" style="padding:5px 9px;flex-shrink:0">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>
     <svg class="s-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
   </div>
 
@@ -439,7 +444,6 @@ function cardHTML(s) {
         <input class="inp" id="n-${s.id}" value="${s.nazev.replace(/"/g,'&quot;')}"
                onkeydown="if(event.key==='Enter')saveNazev('${s.id}')">
         <button class="btn btn-secondary btn-sm" onclick="saveNazev('${s.id}')">Uložit</button>
-        <button class="btn btn-danger btn-sm" onclick="ev(event);delS('${s.id}')">Smazat</button>
       </div>
     </div>
 
@@ -500,6 +504,14 @@ function cardHTML(s) {
           </span>
         </div>
       </div>
+    </div>
+
+    <!-- Export -->
+    <div style="padding-top:4px;border-top:1px solid var(--line);display:flex;justify-content:flex-end">
+      <button class="btn btn-secondary btn-sm" id="exp-btn-${s.id}" onclick="exportSet('${s.id}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportovat PNG (A4)
+      </button>
     </div>
 
   </div>`;
@@ -589,6 +601,154 @@ function reopenCard(id) {
     const chev = document.querySelector('#c-'+id+' .s-chevron');
     if (body) { body.style.display='flex'; chev && chev.classList.add('open'); }
   }, 50);
+}
+
+// ── EXPORT PNG ───────────────────────────────
+async function exportSet(id) {
+  const s = allSestavy.find(x => x.id === id);
+  if (!s) return;
+
+  const btn = document.getElementById('exp-btn-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = 'Exportuji…'; }
+
+  const prods  = (s.produkty_sestavy || []).sort((a,b) => a.poradi - b.poradi);
+  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
+  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+  const akcni  = Number(s.akcni_cena) || 0;
+  const akcniS = Math.round(akcni * 1.21);
+  const slevaBez = celBez - akcni;
+  const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
+
+  function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function fmtKc(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč'; }
+  function fmtKcDph(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč s DPH'; }
+
+  const prodsHTML = prods.map(p => `
+    <div class="card">
+      <div class="card-img"><img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" crossorigin="anonymous"></div>
+      <div class="card-meta">
+        <span class="sku">${esc(p.artiklove_cislo)}</span>
+        ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
+      </div>
+      <div class="card-body">
+        <h3 class="prod-name">${esc(p.nazev)}</h3>
+        <div class="price-row">
+          <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
+          <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const setHTML = `
+    <article class="set">
+      <header class="set-header">
+        <h2 class="set-name">${esc(s.nazev)}</h2>
+        <div class="set-header-right">
+          <div class="save-block">
+            <div class="save-label">Ušetříte</div>
+            <div class="save-value">${fmtKc(slevaBez)}</div>
+          </div>
+          <div class="save-pct">−${pct}&nbsp;%</div>
+        </div>
+      </header>
+      <div class="grid">${prodsHTML}</div>
+      <footer class="summary">
+        <div class="sum-col">
+          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value list">${fmtKc(celBez)}</div>
+          <div class="sum-vat">${fmtKcDph(celS)}</div>
+        </div>
+        <div class="sum-col right">
+          <div class="sum-label">Akční cena sestavy</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value sale">${fmtKc(akcni)}</div>
+          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+        </div>
+      </footer>
+    </article>`;
+
+  const css = `
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0a0a;color:#f5f5f5;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    .set{background:#1e1e1e;border:1px solid #3a3a3a;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px}
+    .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #3a3a3a;gap:20px;flex-wrap:wrap}
+    .set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#f5f5f5}
+    .set-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .save-block{text-align:right}
+    .save-label{color:#9a9a9a;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+    .save-value{color:#f5f5f5;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+    .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .card{background:#1f1f1f;border:1px solid #3d3d3d;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .card-img{background:#fafafa;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .card-img img{width:100%;height:100%;object-fit:contain;padding:6px}
+    .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #3d3d3d;gap:8px}
+    .sku{color:#888;font-size:11px;font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
+    .card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .prod-name{font-size:14px;font-weight:500;line-height:1.35;color:#bdbdbd;margin:0;flex:1}
+    .price-row{border-top:1px solid #3d3d3d;padding-top:10px;margin-top:auto}
+    .price-main{font-size:20px;font-weight:700;color:#f5f5f5}
+    .price-vat{font-size:12px;color:#888;margin-top:2px}
+    .summary{padding-top:18px;border-top:1px solid #3a3a3a;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start}
+    .sum-col{display:flex;flex-direction:column;min-width:0}
+    .sum-col.right{text-align:right;align-items:flex-end}
+    .sum-label{color:#bdbdbd;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:3px}
+    .sum-sublabel{color:#7a7a7a;font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:8px}
+    .sum-value{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:#f5f5f5}
+    .sum-value.list{color:#7a7a7a;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
+    .sum-value.sale{color:#FFD60A}
+    .sum-vat{font-size:14px;color:#888;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
+  `;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:1200px;padding:40px;background:#0a0a0a;z-index:-1;';
+
+  const styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  wrap.appendChild(styleEl);
+
+  const content = document.createElement('div');
+  content.innerHTML = setHTML;
+  wrap.appendChild(content);
+  document.body.appendChild(wrap);
+
+  if (typeof html2canvas === 'undefined') {
+    alert('html2canvas se nepodařilo načíst. Zkontroluj připojení k internetu a znovu načti stránku.');
+    document.body.removeChild(wrap);
+    if (btn) { btn.disabled = false; btn.innerHTML = btnOrigHTML; }
+    return;
+  }
+
+  const btnOrigHTML = btn ? btn.innerHTML : '';
+
+  await document.fonts.ready;
+
+  try {
+    const canvas = await html2canvas(wrap, {
+      useCORS: true,
+      scale: 2,
+      backgroundColor: '#0a0a0a',
+      logging: false,
+      imageTimeout: 15000
+    });
+    const dataUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = s.nazev.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '-') + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(err) {
+    alert('Export se nezdařil: ' + err.message);
+  } finally {
+    document.body.removeChild(wrap);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportovat PNG (A4)`;
+    }
+  }
 }
 
 // ── BOOT ─────────────────────────────────────
