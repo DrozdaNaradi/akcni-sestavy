@@ -527,7 +527,7 @@ function render(sestavy) {
 
 function cardHTML(s) {
   const { celBez, celS, akcni, akcniS, slevaBez, slevaS, pct } = calc(s);
-  const prods = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
+  const prods = (s.produkty_sestavy || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
 
   const prodsHTML = prods.length
     ? prods.map(p => `
@@ -792,7 +792,7 @@ async function exportSet(id) {
   const btnOrigHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Načítám obrázky…'; }
 
-  const prods  = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
+  const prods  = (s.produkty_sestavy || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
   const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
   const akcni  = Number(s.akcni_cena) || 0;

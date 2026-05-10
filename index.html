@@ -105,8 +105,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 
 /* PRICE CARD (4th grid item) */
 .price-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-.price-card-top{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--card-border)}
-.price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column}
+.price-card-top{padding:16px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--card-border);text-align:right}
+.price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column;text-align:right}
+.price-card .sum-label{font-size:9px}
+.price-card .sum-sublabel{font-size:10px;margin-bottom:0}
+.price-card .pc-prices{margin-top:auto;padding-top:10px}
+.price-card .sum-value{font-size:26px;letter-spacing:-.02em}
+.price-card .sum-vat{font-size:11px;margin-top:3px}
 @media(min-width:901px){.price-card{grid-column:4}}
 
 /* PROMO LAYOUT (jeden artikl) */
@@ -313,7 +318,7 @@ async function load() {
   }
 
   el.innerHTML = sestavy.map(s => {
-    const prods   = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
+    const prods   = (s.produkty_sestavy || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
     const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
     const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
     const akcni   = Number(s.akcni_cena) || 0;
@@ -383,14 +388,18 @@ async function load() {
           <div class="price-card-top">
             <div class="sum-label">Ceníková cena / Cena před slevou</div>
             <div class="sum-sublabel">Cena bez DPH 21 %</div>
-            <div class="sum-value list">${fmtKc(celBez)}</div>
-            <div class="sum-vat">${fmtKcDph(celS)}</div>
+            <div class="pc-prices">
+              <div class="sum-value list">${fmtKc(celBez)}</div>
+              <div class="sum-vat">${fmtKcDph(celS)}</div>
+            </div>
           </div>
           <div class="price-card-bot">
             <div class="sum-label">Akční cena sestavy</div>
             <div class="sum-sublabel">Cena bez DPH 21 %</div>
-            <div class="sum-value sale">${fmtKc(akcni)}</div>
-            <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+            <div class="pc-prices">
+              <div class="sum-value sale">${fmtKc(akcni)}</div>
+              <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+            </div>
           </div>
         </div>`;
       mainHTML = `<div class="grid">${prods.slice(0,3).map(p => `
