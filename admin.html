@@ -606,7 +606,7 @@ function reopenCard(id) {
 // ── EXPORT PNG ───────────────────────────────
 async function imgToDataUrl(url) {
   // images.weserv.nl — image proxy s CORS (*), Milwaukee S3 nemá vlastní CORS
-  const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, ''));
+  const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')) + '&q=100';
   try {
     const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
     if (!resp.ok) throw new Error('status ' + resp.status);
@@ -755,7 +755,7 @@ async function exportSet(id) {
   try {
     const canvas = await html2canvas(wrap, {
       useCORS: false,
-      scale: 2,
+      scale: 3,
       backgroundColor: '#f8f8f8',
       logging: false,
       imageTimeout: 0
