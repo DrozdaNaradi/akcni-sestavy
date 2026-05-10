@@ -360,7 +360,7 @@ async function importKatalog() {
   const BATCH = 500;
   for (let i = 0; i < allRows.length; i += BATCH) {
     prog.textContent = `Ukládám ${i+1}–${Math.min(i+BATCH, allRows.length)} / ${allRows.length}…`;
-    const { error } = await sb.from('produkty_katalog').insert(allRows.slice(i, i+BATCH));
+    const { error } = await sb.from('produkty_katalog').upsert(allRows.slice(i, i+BATCH), { onConflict: 'kod_vyrobku' });
     if (error) { alert('Chyba insertu: ' + error.message); btn.disabled = false; return; }
   }
 
