@@ -335,7 +335,7 @@ async function load() {
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div class="set-header-right">
           <div class="save-block">
-            <div class="save-label">Na této sestavě ušetříte celkem</div>
+            <div class="save-label">${s.jedan_artikl ? 'Celkem ušetříte' : 'Na této sestavě ušetříte celkem'}</div>
             <div class="save-value">${fmtKc(slevaBez)}</div>
           </div>
           <div class="save-pct">−${pct} %</div>
@@ -351,7 +351,7 @@ async function load() {
           <div class="sum-vat">${fmtKcDph(celS)}</div>
         </div>
         <div class="sum-col right">
-          <div class="sum-label">Akční cena sestavy</div>
+          <div class="sum-label">Akční cena</div>
           <div class="sum-sublabel">Cena bez DPH 21 %</div>
           <div class="sum-value sale">${fmtKc(akcni)}</div>
           <div class="sum-vat">${fmtKcDph(akcniS)}</div>
