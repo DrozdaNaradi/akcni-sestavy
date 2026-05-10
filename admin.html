@@ -572,7 +572,7 @@ function cardHTML(s) {
       <div class="sec-label">Promo layout</div>
       <div style="display:flex;align-items:center;gap:12px">
         <label class="toggle">
-          <input type="checkbox" ${s.jedan_artikl?'checked':''} onchange="saveJedenArtikl('${s.id}',this.checked)">
+          <input type="checkbox" id="ja-${s.id}" ${s.jedan_artikl?'checked':''} onchange="togglePromoUI('${s.id}',this.checked)">
           <div class="t-track"><div class="t-thumb"></div></div>
         </label>
         <div>
@@ -600,8 +600,7 @@ function cardHTML(s) {
       <div class="sec-label">Název sestavy</div>
       <div class="row">
         <input class="inp" id="n-${s.id}" value="${s.nazev.replace(/"/g,'&quot;')}"
-               onkeydown="if(event.key==='Enter')saveNazev('${s.id}')">
-        <button class="btn btn-secondary btn-sm" onclick="saveNazev('${s.id}')">Uložit</button>
+               onkeydown="if(event.key==='Enter')saveSestava('${s.id}')">
       </div>
     </div>
 
@@ -631,7 +630,7 @@ function cardHTML(s) {
         <div class="price-field">
           <label>Akční cena BEZ DPH (Kč) — hlavní</label>
           <input class="inp" type="number" id="ac-${s.id}" value="${akcni}" min="0" step="1"
-                 onblur="saveAkcni('${s.id}')" onkeydown="if(event.key==='Enter')this.blur()">
+                 oninput="calcDphPreview('${s.id}')" onkeydown="if(event.key==='Enter')saveSestava('${s.id}')">
         </div>
         <div class="price-field" style="justify-content:flex-end">
           <label>S DPH (21 %) — vypočteno</label>
@@ -664,8 +663,12 @@ function cardHTML(s) {
       </div>
     </div>
 
-    <!-- Export -->
-    <div style="padding-top:4px;border-top:1px solid var(--line);display:flex;justify-content:flex-end">
+    <!-- Uložit sestavu -->
+    <div style="padding-top:4px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <button class="btn btn-primary" id="save-btn-${s.id}" onclick="saveSestava('${s.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Uložit sestavu
+      </button>
       <button class="btn btn-secondary btn-sm" id="exp-btn-${s.id}" onclick="exportSet('${s.id}')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Exportovat PNG (A4)
@@ -1025,10 +1028,41 @@ async function exportSet(id) {
 }
 
 // ── JEDEN ARTIKL ─────────────────────────────
-async function saveJedenArtikl(sid, val) {
-  await saveField(sid, 'jeden_artikl', val);
+function togglePromoUI(sid, val) {
   const sec = document.getElementById('promo-sec-' + sid);
   if (sec) sec.style.display = val ? 'flex' : 'none';
+}
+
+function calcDphPreview(id) {
+  const bez = parseFloat(document.getElementById('ac-'+id).value) || 0;
+  const el = document.getElementById('ac-s-'+id);
+  if (el) el.value = Math.round(bez * 1.21);
+}
+
+async function saveSestava(id) {
+  const btn = document.getElementById('save-btn-'+id);
+  const nazev = document.getElementById('n-'+id).value.trim();
+  const akcni = parseFloat(document.getElementById('ac-'+id).value) || 0;
+  const jedenArtikl = document.getElementById('ja-'+id)?.checked || false;
+  if (!nazev) { alert('Zadej název sestavy'); return; }
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Ukládám…';
+  const { error } = await sb.from('sestavy').update({
+    nazev,
+    akcni_cena: akcni,
+    jedan_artikl: jedenArtikl
+  }).eq('id', id);
+  if (error) {
+    btn.textContent = '⚠ Chyba uložení';
+    btn.style.color = 'var(--red)';
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = orig; btn.style.color = ''; }, 3000);
+    console.error('saveSestava:', error.message);
+    return;
+  }
+  btn.textContent = '✓ Uloženo';
+  document.querySelector('#c-'+id+' .s-name').textContent = nazev;
+  setTimeout(async () => { await refresh(); reopenCard(id); }, 800);
 }
 
 async function uploadSlevaImg(sid, input) {
