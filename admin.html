@@ -857,7 +857,7 @@ async function exportSet(id) {
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div class="set-header-right">
           <div class="save-block">
-            <div class="save-label">Ušetříte</div>
+            <div class="save-label">Na této sestavě ušetříte celkem</div>
             <div class="save-value">${fmtKc(slevaBez)}</div>
           </div>
           <div class="save-pct">−${pct}&nbsp;%</div>
@@ -867,7 +867,7 @@ async function exportSet(id) {
   const summaryHTML = `
       <footer class="summary">
         <div class="sum-col">
-          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-label">Ceníková cena / Cena před slevou</div>
           <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
           <div class="sum-value list">${fmtKc(celBez)}</div>
           <div class="sum-vat">${fmtKcDph(celS)}</div>
@@ -920,7 +920,7 @@ async function exportSet(id) {
     const priceCardExport = `
       <div class="price-card">
         <div class="price-card-top">
-          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-label">Ceníková cena / Cena před slevou</div>
           <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
           <div class="sum-value list">${fmtKc(celBez)}</div>
           <div class="sum-vat">${fmtKcDph(celS)}</div>
