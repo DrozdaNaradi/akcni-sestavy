@@ -443,7 +443,7 @@ async function saveSettings() {
 async function getAll() {
   const { data } = await sb.from('sestavy')
     .select('*, produkty_sestavy(*)')
-    .order('created_at');
+    .order('created_at', { ascending: false });
   return data || [];
 }
 async function refresh() { allSestavy = await getAll(); render(allSestavy); }

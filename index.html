@@ -312,7 +312,7 @@ async function load() {
     .from('sestavy')
     .select('*, produkty_sestavy(*)')
     .eq('aktivni', true)
-    .order('created_at');
+    .order('created_at', { ascending: false });
 
   const el = document.getElementById('sestavy');
 
