@@ -646,6 +646,18 @@ async function exportSet(id) {
     if (p.foto_url) imgMap[p.foto_url] = await imgToDataUrl(p.foto_url);
   }));
 
+  // Načíst přirozené rozměry každého obrázku pro ruční výpočet aspect ratio
+  const imgDims = {};
+  await Promise.all(Object.entries(imgMap).map(([url, src]) => {
+    if (!src) return;
+    return new Promise(res => {
+      const img = new Image();
+      img.onload = () => { imgDims[url] = { w: img.naturalWidth, h: img.naturalHeight }; res(); };
+      img.onerror = () => { imgDims[url] = { w: 200, h: 200 }; res(); };
+      img.src = src;
+    });
+  }));
+
   if (btn) btn.textContent = 'Renderuji…';
 
   function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -654,12 +666,15 @@ async function exportSet(id) {
 
   const prodsHTML = prods.map(p => {
     const src = imgMap[p.foto_url] || '';
-    const imgStyle = src
-      ? `background-image:url('${src}');background-size:85%;background-repeat:no-repeat;background-position:center;background-color:#ffffff;`
-      : 'background-color:#ffffff;';
+    const dims = imgDims[p.foto_url] || { w: 200, h: 200 };
+    const maxPx = 200;
+    const ratio = src ? Math.min(maxPx / dims.w, maxPx / dims.h) : 1;
+    const dw = Math.round(dims.w * ratio);
+    const dh = Math.round(dims.h * ratio);
+    const imgEl = src ? `<img src="${src}" width="${dw}" height="${dh}" style="display:block">` : '';
     return `
     <div class="card">
-      <div class="card-img" style="${imgStyle}"></div>
+      <div class="card-img" style="display:flex;align-items:center;justify-content:center;background:#fff">${imgEl}</div>
       <div class="card-meta">
         <span class="sku">${esc(p.artiklove_cislo)}</span>
         ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
