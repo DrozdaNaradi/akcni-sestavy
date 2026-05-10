@@ -922,15 +922,17 @@ async function exportSet(id) {
         <div class="price-card-top">
           <div class="sum-label">Ceníková cena / Cena před slevou</div>
           <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div class="sum-value list">${fmtKc(celBez)}</div>
-          <div class="sum-vat">${fmtKcDph(celS)}</div>
+          <div class="pc-prices">
+            <div class="sum-value list">${fmtKc(celBez)}</div>
+            <div class="sum-vat">${fmtKcDph(celS)}</div>
+          </div>
         </div>
         <div class="price-card-bot">
-          <div class="sum-label">Akční cena sestavy</div>
-          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div style="margin-top:auto;padding-top:8px;text-align:right">
-            <div style="font-size:11px;color:#777;margin-bottom:4px">${fmtKcDph(akcniS)}</div>
-            <div class="sum-value sale" style="font-size:19px">${fmtKc(akcni)}</div>
+          <div class="pc-prices">
+            <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+            <div class="sum-label" style="margin-top:6px">Akční cena sestavy</div>
+            <div class="sum-sublabel" style="margin-bottom:6px">Cena bez DPH 21&nbsp;%</div>
+            <div class="sum-value sale">${fmtKc(akcni)}</div>
           </div>
         </div>
       </div>`;
@@ -974,8 +976,16 @@ async function exportSet(id) {
     .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:4px 12px;border-radius:8px}
     .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
     .price-card{background:#ffffff;border:1px solid #c8c8c8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-    .price-card-top{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #c8c8c8}
-    .price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column}
+    .price-card-top{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:2px solid #c8c8c8;text-align:right}
+    .price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column;text-align:right}
+    .price-card .sum-label{font-size:10px}
+    .price-card .sum-sublabel{font-size:10px;margin-bottom:0}
+    .price-card .sum-vat{font-size:11px;margin-top:2px;margin-bottom:4px}
+    .price-card .sum-value{font-size:22px;letter-spacing:-.02em}
+    .price-card .sum-value.sale{font-size:19px}
+    .pc-prices{margin-top:auto;padding-top:10px}
+    .price-card-top .pc-prices{border-top:1px solid #c8c8c8}
+    .price-card-bot .pc-prices{border-top:none}
   `;
 
   const wrap = document.createElement('div');
