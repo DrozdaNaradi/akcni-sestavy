@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
 :root{
   --bg:#0b0b0d;--surface:#161618;--surface-2:#1d1d20;--surface-3:#242428;
@@ -195,6 +196,29 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
       </div>
     </div>
 
+    <!-- KATALOG -->
+    <div class="s-card" style="margin-bottom:20px">
+      <div class="s-header" onclick="toggleKatalog()">
+        <div class="s-name">Katalog produktů</div>
+        <div class="s-meta" id="katalog-meta-txt">Načítám…</div>
+        <svg class="s-chevron" id="katalog-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="s-body" id="katalog-body" style="display:none">
+        <div>
+          <div class="sec-label">CSV soubory (imp01–imp07) — vyber všechny najednou</div>
+          <label style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface-2);border:1px dashed var(--line-s);border-radius:10px;cursor:pointer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span id="katalog-file-label" style="font-size:14px;color:var(--text-3)">Klikni nebo přetáhni CSV soubory sem</span>
+            <input type="file" id="katalog-files" multiple accept=".csv" style="display:none" onchange="onKatalogFiles(this)">
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="katalog-btn" onclick="importKatalog()">Aktualizovat katalog</button>
+          <span id="katalog-progress" style="font-size:13px;color:var(--text-3)"></span>
+        </div>
+      </div>
+    </div>
+
     <div class="page-header">
       <h1 class="page-title">Akční sestavy</h1>
       <button class="btn btn-primary" onclick="novaSestava()">+ Nová sestava</button>
@@ -257,12 +281,111 @@ async function pickIcon(sid, iconId) {
   document.getElementById(`ico-${sid}-${iconId}`).classList.add('selected');
 }
 
+// ── KATALOG ──────────────────────────────────
+function toggleKatalog() {
+  const body = document.getElementById('katalog-body');
+  const chev = document.getElementById('katalog-chev');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+  chev.classList.toggle('open', !isOpen);
+}
+
+function onKatalogFiles(input) {
+  const n = input.files.length;
+  document.getElementById('katalog-file-label').textContent =
+    n ? `Vybráno ${n} soubor${n===1?'':'ů'} (${Array.from(input.files).map(f=>f.name.match(/imp\d+/)?.[0]||f.name).join(', ')})` :
+    'Klikni nebo přetáhni CSV soubory sem';
+}
+
+async function loadKatalogMeta() {
+  try {
+    const { data } = await sb.from('katalog_meta').select('*').eq('id',1).maybeSingle();
+    const el = document.getElementById('katalog-meta-txt');
+    if (data?.last_import) {
+      const d = new Date(data.last_import);
+      el.textContent = `${data.pocet_produktu?.toLocaleString('cs-CZ')} produktů · aktualizováno ${d.toLocaleDateString('cs-CZ')} ${d.toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'})}`;
+    } else {
+      el.textContent = 'Katalog není naplněn';
+    }
+  } catch { document.getElementById('katalog-meta-txt').textContent = 'Chyba načtení'; }
+}
+
+function parseCsvFile(file) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      header: true, delimiter: ';', skipEmptyLines: true,
+      complete: r => resolve(r.data),
+      error: reject
+    });
+  });
+}
+
+async function importKatalog() {
+  const files = document.getElementById('katalog-files').files;
+  if (!files.length) { alert('Nejdřív vyber CSV soubory.'); return; }
+
+  const btn = document.getElementById('katalog-btn');
+  const prog = document.getElementById('katalog-progress');
+  btn.disabled = true;
+
+  const allRows = [];
+  for (const file of files) {
+    prog.textContent = `Parsuju ${file.name.match(/imp\d+/)?.[0] ?? file.name}…`;
+    const rows = await parseCsvFile(file);
+    const impNazev = file.name.match(/imp\d+/)?.[0] ?? file.name;
+    for (const r of rows) {
+      const kv = r['Kod vyrobku']?.trim();
+      if (!kv) continue;
+      const cenaS   = parseFloat((r['Cena pred slevou']||'0').replace(',','.')) || 0;
+      const nasaS   = parseFloat((r['Nase cena']||'0').replace(',','.')) || 0;
+      allRows.push({
+        kod_vyrobku:    kv,
+        nazev:          r['Nazev vyrobku']?.trim() || '',
+        cena_s_dph:     nasaS,
+        cena_bez_dph:   Math.round(nasaS / 1.21 * 100) / 100,
+        rrp_s_dph:      cenaS,
+        rrp_bez_dph:    Math.round(cenaS / 1.21 * 100) / 100,
+        obrazek_url:    r['Obrazek (puvodni velikost)']?.trim() || '',
+        eshop_url:      r['URL']?.trim() || '',
+        ean:            r['EAN kod']?.trim() || '',
+        imp_soubor:     impNazev,
+        aktualizovano:  new Date().toISOString()
+      });
+    }
+  }
+
+  prog.textContent = `Mažu starý katalog…`;
+  await sb.from('produkty_katalog').delete().not('kod_vyrobku','is',null);
+
+  const BATCH = 500;
+  for (let i = 0; i < allRows.length; i += BATCH) {
+    prog.textContent = `Ukládám ${i+1}–${Math.min(i+BATCH, allRows.length)} / ${allRows.length}…`;
+    const { error } = await sb.from('produkty_katalog').insert(allRows.slice(i, i+BATCH));
+    if (error) { alert('Chyba insertu: ' + error.message); btn.disabled = false; return; }
+  }
+
+  await sb.from('katalog_meta').upsert({ id:1, last_import: new Date().toISOString(), pocet_produktu: allRows.length });
+
+  btn.disabled = false;
+  prog.textContent = `✓ Hotovo — ${allRows.length.toLocaleString('cs-CZ')} produktů`;
+  await loadKatalogMeta();
+}
+
+async function searchProdukt(artikl) {
+  const { data } = await sb.from('produkty_katalog')
+    .select('nazev,cena_bez_dph,cena_s_dph,obrazek_url,eshop_url')
+    .eq('kod_vyrobku', artikl).maybeSingle();
+  if (data) return { n: data.nazev, b: data.cena_bez_dph, s: data.cena_s_dph, f: data.obrazek_url, u: data.eshop_url };
+  return db[artikl] || null;  // fallback na lokální produkty.json
+}
+
 // ── INIT ─────────────────────────────────────
 async function init() {
   try { sb = supabase.createClient(SB_URL, SB_KEY); }
   catch(e) { alert('Chyba připojení k databázi: ' + e.message); return; }
-  db = await fetch('produkty.json').then(r => r.json());
+  db = await fetch('produkty.json').then(r => r.json()).catch(()=>({}));
   await loadSettingsAdmin();
+  await loadKatalogMeta();
   await refresh();
 }
 
@@ -337,8 +460,7 @@ async function saveField(id, field, val) {
   await sb.from('sestavy').update({ [field]: val }).eq('id', id);
 }
 
-async function addProdukt(sid, artikl, bezDph, sDph) {
-  const p = db[artikl];
+async function addProdukt(sid, artikl, bezDph, sDph, p) {
   if (!p) return false;
   await sb.from('produkty_sestavy').insert({
     sestava_id: sid,
@@ -546,13 +668,14 @@ async function saveAkcni(id) {
   reopenCard(id);
 }
 
-function preview(sid) {
+async function preview(sid) {
   const artikl = document.getElementById('a-'+sid).value.trim();
   const el = document.getElementById('pv-'+sid);
   if (!artikl || artikl.length < 4) { el.innerHTML=''; return; }
-  const p = db[artikl];
+  el.innerHTML = `<div style="font-size:13px;color:var(--text-3);padding:8px 0">Hledám…</div>`;
+  const p = await searchProdukt(artikl);
   if (!p) {
-    el.innerHTML = `<div class="not-found">Artikl ${artikl} nebyl nalezen v ceníku Milwaukee.</div>`;
+    el.innerHTML = `<div class="not-found">Artikl ${artikl} nebyl nalezen v katalogu.</div>`;
     return;
   }
   el.innerHTML = `
@@ -584,8 +707,9 @@ async function doAdd(sid) {
   const sDphEl = document.getElementById('ps-'+sid);
   const bez  = bezEl  ? parseFloat(bezEl.value)||0  : null;
   const sDph = sDphEl ? parseFloat(sDphEl.value)||0 : null;
-  const ok = await addProdukt(sid, artikl, bez, sDph);
-  if (!ok) { alert('Artikl '+artikl+' nebyl nalezen v databázi Milwaukee.'); return; }
+  const p = await searchProdukt(artikl);
+  if (!p) { alert('Artikl '+artikl+' nebyl nalezen v katalogu.'); return; }
+  await addProdukt(sid, artikl, bez ?? p.b, sDph ?? p.s, p);
   document.getElementById('a-'+sid).value = '';
   document.getElementById('pv-'+sid).innerHTML = '';
   await refresh();
