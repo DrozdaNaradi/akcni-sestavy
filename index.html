@@ -302,7 +302,7 @@ async function load() {
 
     const prodsHTML = prods.map(p => `
       <div class="card">
-        <div class="card-img" data-src="${esc(p.foto_url)}" data-alt="${esc(p.nazev)}" onclick="openLightbox(this)">
+        <div class="card-img" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
           <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
         </div>
         <div class="card-meta">
