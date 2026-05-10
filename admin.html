@@ -463,7 +463,9 @@ async function delSestava(id) {
 }
 
 async function saveField(id, field, val) {
-  await sb.from('sestavy').update({ [field]: val }).eq('id', id);
+  const { error } = await sb.from('sestavy').update({ [field]: val }).eq('id', id);
+  if (error) console.error('saveField error:', field, error.message);
+  return !error;
 }
 
 async function addProdukt(sid, artikl, bezDph, sDph, p) {
