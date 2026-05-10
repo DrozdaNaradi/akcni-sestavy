@@ -109,9 +109,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column;text-align:right}
 .price-card .sum-label{font-size:9px}
 .price-card .sum-sublabel{font-size:10px;margin-bottom:0}
-.price-card .pc-prices{margin-top:auto;padding-top:10px}
-.price-card .sum-value{font-size:26px;letter-spacing:-.02em}
-.price-card .sum-vat{font-size:11px;margin-top:3px}
+.price-card .pc-prices{margin-top:auto;padding-top:8px}
+.price-card .sum-value{font-size:24px;letter-spacing:-.02em}
+.price-card .sum-value.sale{font-size:19px}
+.price-card .sum-vat{font-size:11px;margin-top:2px;margin-bottom:4px}
 @media(min-width:901px){.price-card{grid-column:4}}
 
 /* PROMO LAYOUT (jeden artikl) */
@@ -397,8 +398,8 @@ async function load() {
             <div class="sum-label">Akční cena sestavy</div>
             <div class="sum-sublabel">Cena bez DPH 21 %</div>
             <div class="pc-prices">
-              <div class="sum-value sale">${fmtKc(akcni)}</div>
               <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+              <div class="sum-value sale">${fmtKc(akcni)}</div>
             </div>
           </div>
         </div>`;

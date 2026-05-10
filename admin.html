@@ -928,8 +928,10 @@ async function exportSet(id) {
         <div class="price-card-bot">
           <div class="sum-label">Akční cena sestavy</div>
           <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div class="sum-value sale">${fmtKc(akcni)}</div>
-          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+          <div style="margin-top:auto;padding-top:8px;text-align:right">
+            <div style="font-size:11px;color:#777;margin-bottom:4px">${fmtKcDph(akcniS)}</div>
+            <div class="sum-value sale" style="font-size:19px">${fmtKc(akcni)}</div>
+          </div>
         </div>
       </div>`;
     setHTML = `
