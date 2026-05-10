@@ -105,15 +105,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 
 /* PRICE CARD (4th grid item) */
 .price-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-.price-card-top{padding:16px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:2px solid var(--card-border);text-align:right}
-.price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column;text-align:right}
+.price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--card-border);text-align:center}
+.price-card-bot{padding:14px 18px 22px;flex:1;display:flex;flex-direction:column;text-align:center}
 .price-card .sum-label{font-size:10px}
-.price-card .sum-sublabel{font-size:10px;margin-bottom:0}
-.price-card .pc-prices{margin-top:auto;padding-top:10px}
-.price-card-top .pc-prices{border-top:1px solid var(--card-border)}
-.price-card .sum-value{font-size:22px;letter-spacing:-.02em}
-.price-card .sum-value.sale{font-size:19px}
-.price-card .sum-vat{font-size:11px;margin-top:2px;margin-bottom:4px}
+.price-card .sum-sublabel{font-size:10px;margin-bottom:6px}
+.price-card .pc-prices{margin-top:auto}
+.price-card .sum-value{font-size:26px;letter-spacing:-.02em}
+.price-card .sum-value.sale{font-size:30px}
+.price-card .sum-vat{font-size:11px;margin-top:4px;margin-bottom:0}
 @media(min-width:901px){.price-card{grid-column:4}}
 
 /* PROMO LAYOUT (jeden artikl) */
@@ -390,16 +389,14 @@ async function load() {
           <div class="price-card-top">
             <div class="sum-label">Ceníková cena / Cena před slevou</div>
             <div class="sum-sublabel">Cena bez DPH 21 %</div>
-            <div class="pc-prices">
-              <div class="sum-value list">${fmtKc(celBez)}</div>
-              <div class="sum-vat">${fmtKcDph(celS)}</div>
-            </div>
+            <div class="sum-value list">${fmtKc(celBez)}</div>
+            <div class="sum-vat">${fmtKcDph(celS)}</div>
           </div>
           <div class="price-card-bot">
             <div class="pc-prices">
               <div class="sum-vat">${fmtKcDph(akcniS)}</div>
               <div class="sum-label" style="margin-top:6px">Akční cena sestavy</div>
-              <div class="sum-sublabel" style="margin-bottom:6px">Cena bez DPH 21 %</div>
+              <div class="sum-sublabel" style="margin-bottom:4px">Cena bez DPH 21 %</div>
               <div class="sum-value sale">${fmtKc(akcni)}</div>
             </div>
           </div>
