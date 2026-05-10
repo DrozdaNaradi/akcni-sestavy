@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS produkty_katalog (
   kod_vyrobku      TEXT PRIMARY KEY,
   nazev            TEXT,
+  popis            TEXT,          -- Popis vyrobku (HTML)
   cena_s_dph       NUMERIC,       -- Nase cena s DPH
   cena_bez_dph     NUMERIC,       -- Nase cena bez DPH (/ 1.21)
   rrp_s_dph        NUMERIC,       -- Cena pred slevou s DPH
@@ -12,6 +13,9 @@ CREATE TABLE IF NOT EXISTS produkty_katalog (
   imp_soubor       TEXT,
   aktualizovano    TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Přidat sloupec popis pokud tabulka již existuje
+ALTER TABLE produkty_katalog ADD COLUMN IF NOT EXISTS popis TEXT;
 
 -- Metadata importu
 CREATE TABLE IF NOT EXISTS katalog_meta (

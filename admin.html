@@ -341,6 +341,7 @@ async function importKatalog() {
       allRows.push({
         kod_vyrobku:    kv,
         nazev:          r['Nazev vyrobku']?.trim() || '',
+        popis:          r['Popis vyrobku']?.trim() || '',
         cena_s_dph:     nasaS,
         cena_bez_dph:   Math.round(nasaS / 1.21 * 100) / 100,
         rrp_s_dph:      cenaS,

@@ -118,6 +118,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 #lb-close{position:fixed;top:20px;right:24px;color:#fff;font-size:26px;line-height:1;background:none;border:none;cursor:pointer;opacity:.6;font-family:inherit;padding:4px 8px}
 #lb-close:hover{opacity:1}
 
+/* DETAIL MODAL */
+#detail-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 20px}
+#detail-modal.open{display:flex}
+.detail-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:20px;width:100%;max-width:760px;overflow:hidden;margin:auto;position:relative}
+.detail-close{position:absolute;top:16px;right:16px;background:var(--container-bg);border:1px solid var(--border);color:var(--text-3);font-size:18px;line-height:1;border-radius:8px;cursor:pointer;padding:6px 10px;font-family:inherit;z-index:1}
+.detail-close:hover{color:var(--text)}
+.detail-img-wrap{background:#fafafa;display:flex;align-items:center;justify-content:center;padding:32px;min-height:280px}
+.detail-img-wrap img{max-width:100%;max-height:420px;object-fit:contain}
+.detail-body{padding:28px 32px 36px}
+.detail-name{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:20px;line-height:1.2;color:var(--text)}
+.detail-popis{font-size:14px;line-height:1.6;color:var(--text-3)}
+.detail-popis p{margin-bottom:10px}
+.detail-popis ul,.detail-popis ol{padding-left:20px;margin-bottom:10px}
+.detail-popis li{margin-bottom:4px}
+.detail-loading{text-align:center;padding:40px;color:var(--text-4);font-size:14px}
+
 /* RESPONSIVE */
 @media(max-width:900px){
   .topbar-inner{padding:20px 24px}
@@ -151,6 +167,18 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 <div id="lightbox" onclick="closeLightbox()">
   <button id="lb-close" onclick="closeLightbox()">✕</button>
   <img id="lb-img" src="" alt="" onclick="event.stopPropagation()">
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal" onclick="closeDetail(event)">
+  <div class="detail-card" onclick="event.stopPropagation()">
+    <button class="detail-close" onclick="closeDetail()">✕</button>
+    <div class="detail-img-wrap"><img id="detail-img" src="" alt=""></div>
+    <div class="detail-body">
+      <div class="detail-name" id="detail-name"></div>
+      <div class="detail-popis" id="detail-popis"><div class="detail-loading">Načítám popis…</div></div>
+    </div>
+  </div>
 </div>
 
 <header class="topbar">
@@ -199,9 +227,30 @@ function openLightbox(el) {
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closeDetail(); } });
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Detail modal
+async function openDetail(artikl, fotoUrl, nazev) {
+  document.getElementById('detail-img').src = fotoUrl;
+  document.getElementById('detail-img').alt = nazev;
+  document.getElementById('detail-name').textContent = nazev;
+  document.getElementById('detail-popis').innerHTML = '<div class="detail-loading">Načítám popis…</div>';
+  document.getElementById('detail-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  try {
+    const { data } = await sb.from('produkty_katalog')
+      .select('popis').eq('kod_vyrobku', artikl).maybeSingle();
+    document.getElementById('detail-popis').innerHTML = data?.popis || '<em>Popis není k dispozici.</em>';
+  } catch {
+    document.getElementById('detail-popis').innerHTML = '<em>Nepodařilo se načíst popis.</em>';
+  }
+}
+function closeDetail() {
+  document.getElementById('detail-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
@@ -258,7 +307,7 @@ async function load() {
         </div>
         <div class="card-meta">
           <span class="sku">${esc(p.artiklove_cislo)}</span>
-          ${p.odkaz_eshop ? `<a class="detail-link" href="${esc(p.odkaz_eshop)}" target="_blank" rel="noopener">Detail ↗</a>` : ''}
+          <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
         </div>
         <div class="card-body">
           <h3 class="prod-name">${esc(p.nazev)}</h3>
