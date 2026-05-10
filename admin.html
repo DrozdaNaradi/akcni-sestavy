@@ -354,20 +354,25 @@ async function importKatalog() {
     }
   }
 
+  // Deduplikace — při duplicitním artiklu vyhrává poslední výskyt
+  const dedupMap = new Map();
+  for (const r of allRows) dedupMap.set(r.kod_vyrobku, r);
+  const uniqueRows = Array.from(dedupMap.values());
+
   prog.textContent = `Mažu starý katalog…`;
   await sb.from('produkty_katalog').delete().not('kod_vyrobku','is',null);
 
   const BATCH = 500;
-  for (let i = 0; i < allRows.length; i += BATCH) {
-    prog.textContent = `Ukládám ${i+1}–${Math.min(i+BATCH, allRows.length)} / ${allRows.length}…`;
-    const { error } = await sb.from('produkty_katalog').upsert(allRows.slice(i, i+BATCH), { onConflict: 'kod_vyrobku' });
+  for (let i = 0; i < uniqueRows.length; i += BATCH) {
+    prog.textContent = `Ukládám ${i+1}–${Math.min(i+BATCH, uniqueRows.length)} / ${uniqueRows.length}…`;
+    const { error } = await sb.from('produkty_katalog').upsert(uniqueRows.slice(i, i+BATCH), { onConflict: 'kod_vyrobku' });
     if (error) { alert('Chyba insertu: ' + error.message); btn.disabled = false; return; }
   }
 
-  await sb.from('katalog_meta').upsert({ id:1, last_import: new Date().toISOString(), pocet_produktu: allRows.length });
+  await sb.from('katalog_meta').upsert({ id:1, last_import: new Date().toISOString(), pocet_produktu: uniqueRows.length });
 
   btn.disabled = false;
-  prog.textContent = `✓ Hotovo — ${allRows.length.toLocaleString('cs-CZ')} produktů`;
+  prog.textContent = `✓ Hotovo — ${uniqueRows.length.toLocaleString('cs-CZ')} produktů`;
   await loadKatalogMeta();
 }
 
