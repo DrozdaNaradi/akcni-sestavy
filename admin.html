@@ -485,7 +485,6 @@ async function addProdukt(sid, artikl, bezDph, sDph, p) {
 
 async function delProdukt(id) {
   await sb.from('produkty_sestavy').delete().eq('id', id);
-  await refresh();
 }
 
 // ── HELPERS ──────────────────────────────────
@@ -541,7 +540,7 @@ function cardHTML(s) {
           <div class="prod-cena-bez">${fmt(p.cena_bez_dph)} Kč</div>
           <div class="prod-cena-s">${fmt(p.cena_s_dph)} Kč s DPH</div>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="ev(event);delProd('${p.id}')" title="Odebrat">✕</button>
+        <button class="btn btn-ghost btn-sm" onclick="ev(event);delProd('${p.id}','${s.id}')" title="Odebrat">✕</button>
       </div>`).join('')
     : `<div style="color:var(--text-3);font-size:13px;padding:4px 0">Zatím žádné produkty.</div>`;
 
@@ -751,12 +750,29 @@ async function doAdd(sid) {
   await addProdukt(sid, artikl, bez ?? p.b, sDph ?? p.s, p);
   document.getElementById('a-'+sid).value = '';
   document.getElementById('pv-'+sid).innerHTML = '';
-  await refresh();
-  reopenCard(sid);
+  await refreshKeepState(sid);
 }
 
-async function delProd(id) { await delProdukt(id); }
+async function delProd(pid, sid) { await delProdukt(pid); await refreshKeepState(sid || openId); }
 async function delS(id) { await delSestava(id); }
+
+async function refreshKeepState(id) {
+  // Zachytit stav neuloženého formuláře
+  const nazev      = document.getElementById('n-'+id)?.value;
+  const akcni      = document.getElementById('ac-'+id)?.value;
+  const jedenArtikl = document.getElementById('ja-'+id)?.checked;
+  await refresh();
+  reopenCard(id);
+  // Obnovit stav po překreslení karty
+  setTimeout(() => {
+    const nEl  = document.getElementById('n-'+id);
+    const aEl  = document.getElementById('ac-'+id);
+    const jaEl = document.getElementById('ja-'+id);
+    if (nEl  && nazev       !== undefined) nEl.value   = nazev;
+    if (aEl  && akcni       !== undefined) { aEl.value = akcni; calcDphPreview(id); }
+    if (jaEl && jedenArtikl !== undefined) { jaEl.checked = jedenArtikl; togglePromoUI(id, jedenArtikl); }
+  }, 100);
+}
 
 function reopenCard(id) {
   setTimeout(() => {
