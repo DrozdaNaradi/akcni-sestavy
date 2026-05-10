@@ -689,22 +689,6 @@ function toggleCard(id) {
   openId = isOpen ? null : id;
 }
 
-async function saveNazev(id) {
-  const val = document.getElementById('n-'+id).value.trim();
-  if (!val) return;
-  await saveField(id, 'nazev', val);
-  document.querySelector('#c-'+id+' .s-name').textContent = val;
-}
-
-async function saveAkcni(id) {
-  const bez = parseFloat(document.getElementById('ac-'+id).value)||0;
-  const sDph = Math.round(bez * 1.21);
-  const sDphEl = document.getElementById('ac-s-'+id);
-  if (sDphEl) sDphEl.value = sDph;
-  await saveField(id, 'akcni_cena', bez);
-  await refresh();
-  reopenCard(id);
-}
 
 async function preview(sid) {
   const artikl = document.getElementById('a-'+sid).value.trim();
@@ -864,6 +848,7 @@ async function exportSet(id) {
       <div class="card-body">
         <h3 class="prod-name">${esc(p.nazev)}</h3>
         <div class="price-row">
+          <div class="price-label">Ceníková cena</div>
           <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
           <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
         </div>
@@ -973,14 +958,15 @@ async function exportSet(id) {
     .save-value{color:#111111;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
     .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
     .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-    .card{background:#ffffff;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .card-img{background:#ffffff;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+    .card-img{background:#f7f7f7;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #c8c8c8;gap:8px}
     .sku{color:#777777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
     .card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
     .prod-name{font-size:14px;font-weight:500;line-height:1.35;color:#333333;margin:0;flex:1}
     .price-row{border-top:1px solid #c8c8c8;padding-top:10px;margin-top:auto}
+    .price-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#777777;margin-bottom:3px}
     .price-main{font-size:20px;font-weight:700;color:#111111}
     .price-vat{font-size:12px;color:#777777;margin-top:2px}
     .summary{padding-top:18px;border-top:1px solid #c0c0c0;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start}
@@ -990,16 +976,17 @@ async function exportSet(id) {
     .sum-sublabel{color:#999999;font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:8px}
     .sum-value{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:#111111}
     .sum-value.list{color:#999999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
-    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:4px 12px;border-radius:8px}
+    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:5px 13px;border-radius:9px}
     .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
-    .price-card{background:#ffffff;border:1px solid #c8c8c8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-    .price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #c8c8c8;text-align:center}
-    .price-card-bot{padding:14px 18px 22px;flex:1;display:flex;flex-direction:column;text-align:center}
-    .price-card .sum-label{font-size:10px}
-    .price-card .sum-sublabel{font-size:10px;margin-bottom:6px}
-    .price-card .sum-vat{font-size:11px;margin-top:4px;margin-bottom:0}
+    .price-card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+    .price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #c8c8c8;text-align:right}
+    .price-card-bot{padding:8px 18px 18px;flex:none;display:flex;flex-direction:column;text-align:right}
+    .price-card .sum-label{font-size:12px}
+    .price-card .sum-sublabel{font-size:12px;margin-bottom:6px}
+    .price-card .sum-vat{font-size:13px;margin-top:4px;margin-bottom:0}
     .price-card .sum-value{font-size:26px;letter-spacing:-.02em}
-    .price-card .sum-value.sale{font-size:30px}
+    .price-card .sum-value.sale{font-size:33px;margin-top:2px;padding:5px 13px;border-radius:9px}
+    .price-card-bot .sum-label{color:#DB011C}
     .pc-prices{margin-top:auto}
   `;
 
