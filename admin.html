@@ -655,8 +655,8 @@ async function exportSet(id) {
   const prodsHTML = prods.map(p => {
     const src = imgMap[p.foto_url] || '';
     const imgStyle = src
-      ? `background-image:url('${src}');background-size:contain;background-repeat:no-repeat;background-position:center;`
-      : '';
+      ? `background-image:url('${src}');background-size:85%;background-repeat:no-repeat;background-position:center;background-color:#ffffff;`
+      : 'background-color:#ffffff;';
     return `
     <div class="card">
       <div class="card-img" style="${imgStyle}"></div>
@@ -717,8 +717,7 @@ async function exportSet(id) {
     .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
     .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
     .card{background:#ffffff;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .card-img{background:#f4f4f4;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .card-img img{width:100%;height:100%;object-fit:contain;padding:6px}
+    .card-img{background:#ffffff;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #c8c8c8;gap:8px}
     .sku{color:#777777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
