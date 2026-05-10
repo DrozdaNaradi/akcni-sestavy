@@ -87,7 +87,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .detail-link:hover{text-decoration:underline}
 .card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
 .prod-name{font-size:14px;font-weight:500;line-height:1.35;color:var(--text-2);margin:0;flex:1}
-.price-row{border-top:1px solid var(--card-border);padding-top:10px;margin-top:auto}
+.price-row{border-top:1px solid var(--card-border);padding-top:10px;margin-top:auto;text-align:center}
+.price-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:3px}
 .price-main{font-size:20px;font-weight:700;color:var(--text)}
 .price-vat{font-size:12px;color:var(--text-4);margin-top:2px}
 
@@ -415,6 +416,7 @@ async function load() {
           <div class="card-body">
             <h3 class="prod-name">${esc(p.nazev)}</h3>
             <div class="price-row">
+              <div class="price-label">Ceníková cena</div>
               <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
               <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
             </div>
