@@ -103,6 +103,19 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .light .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:4px 12px;border-radius:8px;margin-bottom:2px}
 .sum-vat{font-size:14px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
 
+/* PROMO LAYOUT (jeden artikl) */
+.promo-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.promo-left{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;display:flex;align-items:center;justify-content:center;padding:32px;cursor:zoom-in;min-height:360px}
+.promo-left img{max-width:100%;max-height:480px;object-fit:contain}
+.promo-right{display:flex;flex-direction:column;gap:14px}
+.promo-banner{border-radius:14px;overflow:hidden;background:var(--red);aspect-ratio:3/2;flex-shrink:0}
+.promo-banner img{width:100%;height:100%;object-fit:cover;display:block}
+.promo-info{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden;flex:1;display:flex;flex-direction:column}
+.promo-info .card-meta{padding:12px 20px}
+.promo-info .card-body{padding:16px 20px 24px;flex:1;display:flex;flex-direction:column;gap:14px}
+.promo-info .prod-name{font-size:20px;font-weight:700;line-height:1.25;color:var(--text);flex:1}
+.promo-info .price-main{font-size:32px}
+
 /* FOOTER */
 .page-footer{max-width:1280px;margin:0 auto;padding:40px 80px 80px;color:var(--text-6);font-size:12px;border-top:1px solid var(--border-soft)}
 
@@ -145,6 +158,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .set-header{flex-direction:column;align-items:flex-start}
   .set-header-right{width:100%;justify-content:space-between}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .promo-layout{grid-template-columns:1fr}
+  .promo-left{min-height:220px}
   .summary{grid-template-columns:1fr;gap:16px}
   .sum-col.right{text-align:left;align-items:flex-start}
   .sum-value{font-size:32px}
@@ -300,26 +315,7 @@ async function load() {
     const slevaBez = celBez - akcni;
     const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
 
-    const prodsHTML = prods.map(p => `
-      <div class="card">
-        <div class="card-img" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
-          <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
-        </div>
-        <div class="card-meta">
-          <span class="sku">${esc(p.artiklove_cislo)}</span>
-          <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
-        </div>
-        <div class="card-body">
-          <h3 class="prod-name">${esc(p.nazev)}</h3>
-          <div class="price-row">
-            <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
-            <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
-          </div>
-        </div>
-      </div>`).join('');
-
-    return `
-    <article class="set">
+    const setHeader = `
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div class="set-header-right">
@@ -329,8 +325,9 @@ async function load() {
           </div>
           <div class="save-pct">−${pct} %</div>
         </div>
-      </header>
-      <div class="grid">${prodsHTML}</div>
+      </header>`;
+
+    const summary = `
       <footer class="summary">
         <div class="sum-col">
           <div class="sum-label">Ceníková cena</div>
@@ -344,8 +341,57 @@ async function load() {
           <div class="sum-value sale">${fmtKc(akcni)}</div>
           <div class="sum-vat">${fmtKcDph(akcniS)}</div>
         </div>
-      </footer>
-    </article>`;
+      </footer>`;
+
+    let mainHTML;
+    if (s.jedan_artikl && prods.length > 0) {
+      const p = prods[0];
+      const bannerImg = s.sleva_obrazek_url
+        ? `<img src="${esc(s.sleva_obrazek_url)}" alt="Akční nabídka">`
+        : '';
+      mainHTML = `
+        <div class="promo-layout">
+          <div class="promo-left" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
+            <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
+          </div>
+          <div class="promo-right">
+            <div class="promo-banner">${bannerImg}</div>
+            <div class="promo-info">
+              <div class="card-meta">
+                <span class="sku">${esc(p.artiklove_cislo)}</span>
+                <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
+              </div>
+              <div class="card-body">
+                <h3 class="prod-name">${esc(p.nazev)}</h3>
+                <div class="price-row">
+                  <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
+                  <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      mainHTML = `<div class="grid">${prods.map(p => `
+        <div class="card">
+          <div class="card-img" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
+            <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
+          </div>
+          <div class="card-meta">
+            <span class="sku">${esc(p.artiklove_cislo)}</span>
+            <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
+          </div>
+          <div class="card-body">
+            <h3 class="prod-name">${esc(p.nazev)}</h3>
+            <div class="price-row">
+              <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
+              <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+            </div>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+
+    return `<article class="set">${setHeader}${mainHTML}${summary}</article>`;
   }).join('');
 }
 

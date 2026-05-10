@@ -565,6 +565,34 @@ function cardHTML(s) {
       <div class="icon-grid">${iconPickerHTML(s.id, s.ikona || '')}</div>
     </div>
 
+    <!-- Jeden artikl -->
+    <div>
+      <div class="sec-label">Promo layout</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <label class="toggle">
+          <input type="checkbox" ${s.jedan_artikl?'checked':''} onchange="saveJedenArtikl('${s.id}',this.checked)">
+          <div class="t-track"><div class="t-thumb"></div></div>
+        </label>
+        <div>
+          <div style="font-size:14px;font-weight:600">Jeden artikl</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px">Velká fotka vlevo + červený promo banner vpravo</div>
+        </div>
+      </div>
+      <div id="promo-sec-${s.id}" style="${s.jedan_artikl?'display:flex':'display:none'};flex-direction:column;gap:10px;margin-top:12px;padding:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px">
+        <div style="font-size:12px;color:var(--text-3)">Promo banner (doporučeno 1200 × 800 px, poměr 3:2)</div>
+        ${s.sleva_obrazek_url
+          ? `<img src="${s.sleva_obrazek_url}" style="width:100%;max-width:260px;height:auto;border-radius:8px;aspect-ratio:3/2;object-fit:cover">`
+          : `<div style="width:260px;height:174px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.3);font-size:12px;text-align:center;padding:12px">Výchozí červený banner<br>(nahraj vlastní obrázek)</div>`
+        }
+        <label style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface-3);border:1px solid var(--line-s);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;width:fit-content">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Nahrát vlastní obrázek
+          <input type="file" accept="image/*" style="display:none" onchange="uploadSlevaImg('${s.id}',this)">
+        </label>
+        <span id="promo-upload-msg-${s.id}" style="font-size:12px"></span>
+      </div>
+    </div>
+
     <!-- Název -->
     <div>
       <div class="sec-label">Název sestavy</div>
@@ -775,6 +803,9 @@ async function exportSet(id) {
   await Promise.all(prods.map(async p => {
     if (p.foto_url) imgMap[p.foto_url] = await imgToDataUrl(p.foto_url);
   }));
+  if (s.jedan_artikl && s.sleva_obrazek_url) {
+    imgMap['__sleva__'] = await imgToDataUrl(s.sleva_obrazek_url);
+  }
 
   // Načíst přirozené rozměry každého obrázku pro ruční výpočet aspect ratio
   const imgDims = {};
@@ -819,8 +850,7 @@ async function exportSet(id) {
     </div>`;
   }).join('');
 
-  const setHTML = `
-    <article class="set">
+  const setHeaderHTML = `
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div class="set-header-right">
@@ -830,8 +860,9 @@ async function exportSet(id) {
           </div>
           <div class="save-pct">−${pct}&nbsp;%</div>
         </div>
-      </header>
-      <div class="grid">${prodsHTML}</div>
+      </header>`;
+
+  const summaryHTML = `
       <footer class="summary">
         <div class="sum-col">
           <div class="sum-label">Ceníková cena</div>
@@ -845,8 +876,52 @@ async function exportSet(id) {
           <div class="sum-value sale">${fmtKc(akcni)}</div>
           <div class="sum-vat">${fmtKcDph(akcniS)}</div>
         </div>
-      </footer>
+      </footer>`;
+
+  let setHTML;
+  if (s.jedan_artikl && prods.length > 0) {
+    const p0 = prods[0];
+    const src0 = imgMap[p0.foto_url] || '';
+    const dims0 = imgDims[p0.foto_url] || {w:200,h:200};
+    const maxBig = 460;
+    const ratioBig = src0 ? Math.min(maxBig/dims0.w, maxBig/dims0.h) : 1;
+    const bw = Math.round(dims0.w * ratioBig);
+    const bh = Math.round(dims0.h * ratioBig);
+    const bigImgEl = src0 ? `<img src="${src0}" width="${bw}" height="${bh}" style="display:block">` : '';
+    const slevaSrc = imgMap['__sleva__'] || '';
+    const bannerEl = slevaSrc ? `<img src="${slevaSrc}" style="width:100%;height:100%;object-fit:cover;display:block">` : '';
+    setHTML = `
+    <article class="set">
+      ${setHeaderHTML}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="background:#fff;border:1px solid #c8c8c8;border-radius:14px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:340px">${bigImgEl}</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="border-radius:14px;overflow:hidden;background:#DB011C;aspect-ratio:3/2;flex-shrink:0">${bannerEl}</div>
+          <div style="background:#fff;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;flex:1;display:flex;flex-direction:column">
+            <div style="padding:10px 20px;border-bottom:1px solid #c8c8c8;display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em">${esc(p0.artiklove_cislo)}</span>
+              ${p0.odkaz_eshop ? '<span style="color:#DB011C;font-size:12px;font-weight:600">Detail ↗</span>' : ''}
+            </div>
+            <div style="padding:16px 20px 22px;flex:1;display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:22px;font-weight:700;line-height:1.2;color:#111;flex:1">${esc(p0.nazev)}</div>
+              <div style="border-top:1px solid #c8c8c8;padding-top:14px">
+                <div style="font-size:34px;font-weight:700;color:#111;letter-spacing:-.02em">${fmtKc(p0.cena_bez_dph)}</div>
+                <div style="font-size:13px;color:#777;margin-top:4px">${fmtKcDph(p0.cena_s_dph)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${summaryHTML}
     </article>`;
+  } else {
+    setHTML = `
+    <article class="set">
+      ${setHeaderHTML}
+      <div class="grid">${prodsHTML}</div>
+      ${summaryHTML}
+    </article>`;
+  }
 
   // Světlý motiv — stejné barvy jako index.html light mode
   const css = `
@@ -920,6 +995,35 @@ async function exportSet(id) {
       btn.innerHTML = btnOrigHTML;
     }
   }
+}
+
+// ── JEDEN ARTIKL ─────────────────────────────
+async function saveJedenArtikl(sid, val) {
+  await saveField(sid, 'jeden_artikl', val);
+  const sec = document.getElementById('promo-sec-' + sid);
+  if (sec) sec.style.display = val ? 'flex' : 'none';
+}
+
+async function uploadSlevaImg(sid, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const msg = document.getElementById('promo-upload-msg-' + sid);
+  msg.textContent = 'Nahrávám…';
+  msg.style.color = 'var(--text-3)';
+  const ext = file.name.split('.').pop();
+  const path = `sleva-${sid}.${ext}`;
+  const { error: upErr } = await sb.storage.from('sestavy-assets').upload(path, file, { upsert: true });
+  if (upErr) {
+    msg.textContent = '⚠ Chyba: ' + upErr.message + ' (vytvoř bucket sestavy-assets v Supabase Storage)';
+    msg.style.color = 'var(--red)';
+    return;
+  }
+  const { data: { publicUrl } } = sb.storage.from('sestavy-assets').getPublicUrl(path);
+  await saveField(sid, 'sleva_obrazek_url', publicUrl);
+  msg.textContent = '✓ Obrázek uložen';
+  msg.style.color = 'var(--green)';
+  await refresh();
+  reopenCard(sid);
 }
 
 // ── BOOT ─────────────────────────────────────
