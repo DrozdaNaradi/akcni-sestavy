@@ -103,6 +103,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .light .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:4px 12px;border-radius:8px;margin-bottom:2px}
 .sum-vat{font-size:14px;color:var(--text-4);font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
 
+/* PRICE CARD (4th grid item) */
+.price-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.price-card-top{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--card-border)}
+.price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column}
+@media(min-width:901px){.price-card{grid-column:4}}
+
 /* PROMO LAYOUT (jeden artikl) */
 .promo-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .promo-left{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;display:flex;align-items:center;justify-content:center;padding:32px;cursor:zoom-in;min-height:360px}
@@ -307,7 +313,7 @@ async function load() {
   }
 
   el.innerHTML = sestavy.map(s => {
-    const prods   = (s.produkty_sestavy || []).sort((a,b) => a.poradi - b.poradi);
+    const prods   = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
     const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
     const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
     const akcni   = Number(s.akcni_cena) || 0;
@@ -372,7 +378,22 @@ async function load() {
           </div>
         </div>`;
     } else {
-      mainHTML = `<div class="grid">${prods.map(p => `
+      const priceCard = `
+        <div class="price-card">
+          <div class="price-card-top">
+            <div class="sum-label">Ceníková cena</div>
+            <div class="sum-sublabel">Cena bez DPH 21 %</div>
+            <div class="sum-value list">${fmtKc(celBez)}</div>
+            <div class="sum-vat">${fmtKcDph(celS)}</div>
+          </div>
+          <div class="price-card-bot">
+            <div class="sum-label">Akční cena sestavy</div>
+            <div class="sum-sublabel">Cena bez DPH 21 %</div>
+            <div class="sum-value sale">${fmtKc(akcni)}</div>
+            <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+          </div>
+        </div>`;
+      mainHTML = `<div class="grid">${prods.slice(0,3).map(p => `
         <div class="card">
           <div class="card-img" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
             <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
@@ -388,10 +409,11 @@ async function load() {
               <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
             </div>
           </div>
-        </div>`).join('')}</div>`;
+        </div>`).join('')}${priceCard}</div>`;
     }
 
-    return `<article class="set">${setHeader}${mainHTML}${summary}</article>`;
+    const hasSummary = s.jedan_artikl && prods.length > 0;
+    return `<article class="set">${setHeader}${mainHTML}${hasSummary ? summary : ''}</article>`;
   }).join('');
 }
 

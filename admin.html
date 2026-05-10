@@ -12,10 +12,10 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <style>
 :root{
-  --bg:#0b0b0d;--surface:#161618;--surface-2:#1d1d20;--surface-3:#242428;
-  --line:rgba(255,255,255,.08);--line-s:rgba(255,255,255,.14);
-  --text:#f5f5f7;--text-2:#a1a1a6;--text-3:#6e6e73;
-  --red:#e4002b;--green:#30d158;--radius:14px;
+  --bg:#f5f5f7;--surface:#ffffff;--surface-2:#f0f0f5;--surface-3:#e5e5ea;
+  --line:rgba(0,0,0,.1);--line-s:rgba(0,0,0,.18);
+  --text:#1d1d1f;--text-2:#424245;--text-3:#6e6e73;
+  --red:#e4002b;--green:#248a3d;--radius:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -40,7 +40,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 .btn-full{width:100%;justify-content:center}
 
 /* TOPBAR */
-.topbar{border-bottom:1px solid var(--line);background:rgba(11,11,13,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50}
+.topbar{border-bottom:1px solid var(--line);background:rgba(245,245,247,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50}
 .topbar-inner{max-width:860px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
 .brand{font-size:14px;font-weight:700}.brand span{color:var(--text-3);font-weight:400;margin-left:6px}
 
@@ -52,7 +52,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 /* SESTAVA CARD */
 .s-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
 .s-header{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;user-select:none}
-.s-header:hover{background:rgba(255,255,255,.02)}
+.s-header:hover{background:rgba(0,0,0,.025)}
 .s-name{flex:1;font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .s-meta{font-size:12px;color:var(--text-3);white-space:nowrap}
 .s-chevron{color:var(--text-3);transition:transform .2s;flex-shrink:0}
@@ -527,7 +527,7 @@ function render(sestavy) {
 
 function cardHTML(s) {
   const { celBez, celS, akcni, akcniS, slevaBez, slevaS, pct } = calc(s);
-  const prods = s.produkty_sestavy || [];
+  const prods = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
 
   const prodsHTML = prods.length
     ? prods.map(p => `
@@ -792,7 +792,7 @@ async function exportSet(id) {
   const btnOrigHTML = btn ? btn.innerHTML : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Načítám obrázky…'; }
 
-  const prods  = (s.produkty_sestavy || []).sort((a,b) => a.poradi - b.poradi);
+  const prods  = (s.produkty_sestavy || []).sort((a,b) => b.poradi - a.poradi);
   const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
   const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
   const akcni  = Number(s.akcni_cena) || 0;
@@ -827,7 +827,7 @@ async function exportSet(id) {
   function fmtKc(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč'; }
   function fmtKcDph(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč s DPH'; }
 
-  const prodsHTML = prods.map(p => {
+  const prodsHTML = prods.slice(0,3).map(p => {
     const src = imgMap[p.foto_url] || '';
     const dims = imgDims[p.foto_url] || { w: 200, h: 200 };
     const maxPx = 200;
@@ -917,11 +917,25 @@ async function exportSet(id) {
       ${summaryHTML}
     </article>`;
   } else {
+    const priceCardExport = `
+      <div class="price-card">
+        <div class="price-card-top">
+          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value list">${fmtKc(celBez)}</div>
+          <div class="sum-vat">${fmtKcDph(celS)}</div>
+        </div>
+        <div class="price-card-bot">
+          <div class="sum-label">Akční cena sestavy</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value sale">${fmtKc(akcni)}</div>
+          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+        </div>
+      </div>`;
     setHTML = `
     <article class="set">
       ${setHeaderHTML}
-      <div class="grid">${prodsHTML}</div>
-      ${summaryHTML}
+      <div class="grid">${prodsHTML}${priceCardExport}</div>
     </article>`;
   }
 
@@ -957,6 +971,9 @@ async function exportSet(id) {
     .sum-value.list{color:#999999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
     .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:4px 12px;border-radius:8px}
     .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
+    .price-card{background:#ffffff;border:1px solid #c8c8c8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+    .price-card-top{padding:18px 18px 14px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #c8c8c8}
+    .price-card-bot{padding:14px 18px 20px;flex:1;display:flex;flex-direction:column}
   `;
 
   const wrap = document.createElement('div');
