@@ -1083,8 +1083,16 @@ async function uploadSlevaImg(sid, input) {
   await saveField(sid, 'sleva_obrazek_url', publicUrl);
   msg.textContent = '✓ Obrázek uložen';
   msg.style.color = 'var(--green)';
-  await refresh();
-  reopenCard(sid);
+  // Aktualizuj jen náhled obrázku v DOM, nepřekresluj celou kartu (zachová stav toggleu)
+  const sec = document.getElementById('promo-sec-' + sid);
+  if (sec) {
+    const existing = sec.querySelector('img');
+    if (existing) { existing.src = publicUrl; }
+    else {
+      const placeholder = sec.querySelector('div[style*="background:var(--red)"]');
+      if (placeholder) placeholder.outerHTML = `<img src="${publicUrl}" style="width:100%;max-width:260px;height:auto;border-radius:8px;aspect-ratio:3/2;object-fit:cover">`;
+    }
+  }
 }
 
 // ── BOOT ─────────────────────────────────────
