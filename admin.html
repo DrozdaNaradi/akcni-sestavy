@@ -654,9 +654,12 @@ async function exportSet(id) {
 
   const prodsHTML = prods.map(p => {
     const src = imgMap[p.foto_url] || '';
+    const imgStyle = src
+      ? `background-image:url('${src}');background-size:contain;background-repeat:no-repeat;background-position:center;`
+      : '';
     return `
     <div class="card">
-      <div class="card-img">${src ? `<img src="${src}" alt="${esc(p.nazev)}">` : ''}</div>
+      <div class="card-img" style="${imgStyle}"></div>
       <div class="card-meta">
         <span class="sku">${esc(p.artiklove_cislo)}</span>
         ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
