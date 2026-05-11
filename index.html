@@ -322,7 +322,7 @@ async function load() {
   }
 
   el.innerHTML = sestavy.map(s => {
-    const prods   = (s.produkty_sestavy || []).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    const prods   = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
     const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
     const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
     const akcni   = Number(s.akcni_cena) || 0;
