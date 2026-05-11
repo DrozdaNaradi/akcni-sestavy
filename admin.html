@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#f5f5f7;--surface:#ffffff;--surface-2:#f0f0f5;--surface-3:#e5e5ea;
@@ -114,6 +115,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 .pv-akcni{color:var(--red)}
 .pv-sleva{color:var(--green)}
 
+/* NAKUPNÍ CENY */
+.nakup-upload{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nakup-file-btn{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface-2);border:1px solid var(--line-s);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap}
+.nakup-file-btn:hover{background:var(--surface-3)}
+.nakup-status{font-size:13px;color:var(--text-3)}
+.nakup-badge{font-size:11px;font-weight:600;color:var(--green);background:rgba(36,138,61,.1);border-radius:5px;padding:2px 7px;white-space:nowrap}
+.nakup-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:14px;border-top:1px solid var(--line)}
+.nakup-box{background:rgba(36,138,61,.06);border:1px solid rgba(36,138,61,.2);border-radius:10px;padding:16px;margin-top:10px}
+.nakup-total{font-size:16px;font-weight:700;color:var(--green)}
+.marze-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin:12px 0 8px}
+.marze-btns{display:flex;gap:8px;flex-wrap:wrap}
+.marze-btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line-s);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .12s,border-color .12s;display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;min-width:80px}
+.marze-btn:hover{background:var(--surface-3);border-color:var(--line-s)}
+.marze-btn .m-pct{font-size:15px;font-weight:700;color:var(--text)}
+.marze-btn .m-price{font-size:12px;color:var(--text-3)}
+
 /* EMPTY / LOADING */
 .empty{text-align:center;padding:56px 20px;color:var(--text-3)}
 .empty h3{font-size:17px;font-weight:600;color:var(--text-2);margin-bottom:6px}
@@ -215,6 +232,28 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <button class="btn btn-primary" id="katalog-btn" onclick="importKatalog()">Aktualizovat katalog</button>
           <span id="katalog-progress" style="font-size:13px;color:var(--text-3)"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NÁKUPNÍ CENY -->
+    <div class="s-card" style="margin-bottom:20px">
+      <div class="s-header" onclick="toggleNakup()">
+        <div class="s-name">Nákupní ceny <span style="font-size:12px;font-weight:400;color:var(--text-3)">(jen pro tebe, nikam se neukládají)</span></div>
+        <div class="s-meta" id="nakup-meta-txt">Nenahrán</div>
+        <svg class="s-chevron" id="nakup-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="s-body" id="nakup-body" style="display:none">
+        <div>
+          <div class="sec-label">Nahrát Skladové pohyby (XLSX z Pohody)</div>
+          <div class="nakup-upload">
+            <label class="nakup-file-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Nahrát XLSX
+              <input type="file" accept=".xlsx,.xls" style="display:none" onchange="loadNakupniCenyFile(this)">
+            </label>
+            <span class="nakup-status" id="nakup-status">Žádný soubor nenačten</span>
+          </div>
         </div>
       </div>
     </div>
@@ -385,6 +424,79 @@ async function searchProdukt(artikl) {
   return db[artikl] || null;  // fallback na lokální produkty.json
 }
 
+// ── NÁKUPNÍ CENY ─────────────────────────────
+let nakupniCeny = {};
+let nakupniCenyLoaded = false;
+
+function toggleNakup() {
+  const body = document.getElementById('nakup-body');
+  const chev = document.getElementById('nakup-chev');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'flex';
+  chev.classList.toggle('open', !isOpen);
+}
+
+function loadNakupniCenyFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('nakup-status');
+  const meta   = document.getElementById('nakup-meta-txt');
+  status.style.color = 'var(--text-3)';
+  status.textContent = 'Načítám…';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb   = XLSX.read(e.target.result, { type: 'array' });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      const totals = {}, qtys = {};
+      for (const row of rows) {
+        const pohyb = String(row[14] || '').trim();
+        if (pohyb !== 'Příjem') continue;
+        const artikl = String(row[2] || '').trim();
+        if (!artikl || artikl === 'Kód') continue;
+        const qty   = parseFloat(String(row[16]).replace(',', '.')) || 0;
+        const price = parseFloat(String(row[18]).replace(',', '.')) || 0;
+        if (!qty || !price) continue;
+        totals[artikl] = (totals[artikl] || 0) + qty * price;
+        qtys[artikl]   = (qtys[artikl]   || 0) + qty;
+      }
+      nakupniCeny = {};
+      for (const [a, t] of Object.entries(totals)) {
+        if (qtys[a] > 0) nakupniCeny[a] = Math.round(t / qtys[a] * 100) / 100;
+      }
+      nakupniCenyLoaded = true;
+      const count = Object.keys(nakupniCeny).length;
+      status.textContent = `✓ Načteno ${count.toLocaleString('cs-CZ')} artiklů`;
+      status.style.color = 'var(--green)';
+      meta.textContent   = `${count.toLocaleString('cs-CZ')} artiklů`;
+      refresh();
+    } catch(err) {
+      status.textContent = 'Chyba při čtení: ' + err.message;
+      status.style.color = 'var(--red)';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function getNakupCelkem(s) {
+  if (!nakupniCenyLoaded) return null;
+  const prods = s.produkty_sestavy || [];
+  if (!prods.length) return null;
+  let total = 0, found = 0;
+  for (const p of prods) {
+    const c = nakupniCeny[p.artiklove_cislo];
+    if (c > 0) { total += c; found++; }
+  }
+  return found ? { total: Math.round(total * 100) / 100, found, all: found === prods.length } : null;
+}
+
+function setMarze(sid, nakupTotal, marze) {
+  const prodejni = Math.round(nakupTotal / (1 - marze));
+  const el = document.getElementById('ac-' + sid);
+  if (el) { el.value = prodejni; calcDphPreview(sid); el.focus(); }
+}
+
 // ── INIT ─────────────────────────────────────
 async function init() {
   try { sb = supabase.createClient(SB_URL, SB_KEY); }
@@ -527,21 +639,28 @@ function render(sestavy) {
 function cardHTML(s) {
   const { celBez, celS, akcni, akcniS, slevaBez, slevaS, pct } = calc(s);
   const prods = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  const nakup = getNakupCelkem(s);
 
   const prodsHTML = prods.length
-    ? prods.map(p => `
+    ? prods.map(p => {
+        const nc = nakupniCenyLoaded ? nakupniCeny[p.artiklove_cislo] : null;
+        return `
       <div class="prod-item">
         <img class="prod-img" src="${p.foto_url}" onerror="this.style.opacity='.2'" alt="">
         <div class="prod-info">
           <div class="prod-name">${p.nazev}</div>
-          <div class="prod-sub">Artikl: ${p.artiklove_cislo}</div>
+          <div class="prod-sub" style="display:flex;gap:8px;align-items:center">
+            <span>Artikl: ${p.artiklove_cislo}</span>
+            ${nc ? `<span class="nakup-badge">Nákup: ${fmt(nc)} Kč</span>` : ''}
+          </div>
         </div>
         <div class="prod-ceny">
           <div class="prod-cena-bez">${fmt(p.cena_bez_dph)} Kč</div>
           <div class="prod-cena-s">${fmt(p.cena_s_dph)} Kč s DPH</div>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="ev(event);delProd('${p.id}','${s.id}')" title="Odebrat">✕</button>
-      </div>`).join('')
+      </div>`;
+      }).join('')
     : `<div style="color:var(--text-3);font-size:13px;padding:4px 0">Zatím žádné produkty.</div>`;
 
   return `
@@ -660,6 +779,23 @@ function cardHTML(s) {
           </span>
         </div>
       </div>
+      ${nakup ? `
+      <div class="nakup-box">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--green)">Náš nákup celkem</span>
+          <span class="nakup-total">${fmt(nakup.total)} Kč bez DPH${!nakup.all ? ` <span style="font-size:11px;font-weight:400;color:var(--text-3)">(${nakup.found}/${(s.produkty_sestavy||[]).length} artiklů)</span>` : ''}</span>
+        </div>
+        <div class="marze-label">Navrhované prodejní ceny (bez DPH)</div>
+        <div class="marze-btns">
+          ${[25,30,35,40,45].map(m => {
+            const price = Math.round(nakup.total / (1 - m/100));
+            return `<button class="marze-btn" onclick="ev(event);setMarze('${s.id}',${nakup.total},${m/100})">
+              <span class="m-pct">${m} %</span>
+              <span class="m-price">${fmt(price)} Kč</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
     </div>
 
     <!-- Uložit sestavu -->
@@ -707,6 +843,7 @@ async function preview(sid) {
         <div class="preview-name">${p.n}</div>
         <div class="preview-ceny">
           Ceníková: <b>${fmt(p.b)} Kč bez DPH</b> · ${fmt(p.s)} Kč s DPH
+          ${nakupniCenyLoaded && nakupniCeny[artikl] ? `<br><span class="nakup-badge" style="margin-top:4px;display:inline-block">Náš nákup: ${fmt(nakupniCeny[artikl])} Kč</span>` : ''}
         </div>
         <div class="preview-inputs">
           <div class="preview-field">
