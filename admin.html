@@ -441,11 +441,23 @@ function toggleNakup() {
   chev.classList.toggle('open', !isOpen);
 }
 
+function applyNakupniCeny(data, datum) {
+  nakupniCeny = data;
+  nakupniCenyLoaded = true;
+  const count = Object.keys(nakupniCeny).length;
+  const status = document.getElementById('nakup-status');
+  const meta   = document.getElementById('nakup-meta-txt');
+  if (status) {
+    status.textContent = `✓ ${count.toLocaleString('cs-CZ')} artiklů · nahráno ${datum}`;
+    status.style.color = 'var(--green)';
+  }
+  if (meta) meta.textContent = `${count.toLocaleString('cs-CZ')} artiklů`;
+}
+
 function loadNakupniCenyFile(input) {
   const file = input.files[0];
   if (!file) return;
   const status = document.getElementById('nakup-status');
-  const meta   = document.getElementById('nakup-meta-txt');
   status.style.color = 'var(--text-3)';
   status.textContent = 'Načítám…';
   const reader = new FileReader();
@@ -466,15 +478,15 @@ function loadNakupniCenyFile(input) {
         totals[artikl] = (totals[artikl] || 0) + qty * price;
         qtys[artikl]   = (qtys[artikl]   || 0) + qty;
       }
-      nakupniCeny = {};
+      const data = {};
       for (const [a, t] of Object.entries(totals)) {
-        if (qtys[a] > 0) nakupniCeny[a] = Math.round(t / qtys[a] * 100) / 100;
+        if (qtys[a] > 0) data[a] = Math.round(t / qtys[a] * 100) / 100;
       }
-      nakupniCenyLoaded = true;
-      const count = Object.keys(nakupniCeny).length;
-      status.textContent = `✓ Načteno ${count.toLocaleString('cs-CZ')} artiklů`;
-      status.style.color = 'var(--green)';
-      meta.textContent   = `${count.toLocaleString('cs-CZ')} artiklů`;
+      const datum = new Date().toLocaleDateString('cs-CZ');
+      try {
+        localStorage.setItem('nakupniCeny', JSON.stringify({ data, datum }));
+      } catch(e) {}
+      applyNakupniCeny(data, datum);
       refresh();
     } catch(err) {
       status.textContent = 'Chyba při čtení: ' + err.message;
@@ -482,6 +494,15 @@ function loadNakupniCenyFile(input) {
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+function tryLoadNakupniCenyFromStorage() {
+  try {
+    const raw = localStorage.getItem('nakupniCeny');
+    if (!raw) return;
+    const { data, datum } = JSON.parse(raw);
+    if (data && Object.keys(data).length > 0) applyNakupniCeny(data, datum);
+  } catch(e) {}
 }
 
 function getNakupCelkem(s) {
@@ -516,6 +537,7 @@ async function init() {
   try { sb = supabase.createClient(SB_URL, SB_KEY); }
   catch(e) { alert('Chyba připojení k databázi: ' + e.message); return; }
   db = await fetch('produkty.json').then(r => r.json()).catch(()=>({}));
+  tryLoadNakupniCenyFromStorage();
   await loadSettingsAdmin();
   await loadKatalogMeta();
   await refresh();
