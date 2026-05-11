@@ -808,7 +808,7 @@ function cardHTML(s) {
         </div>
         <div class="marze-label">Navrhované prodejní ceny (bez DPH)</div>
         <div class="marze-btns">
-          ${[25,30,35,40,45].map(m => {
+          ${[25,30,35,40,45,50,55].map(m => {
             const price = roundPrice(nakup.total / (1 - m/100));
             const actualPct = Math.round((price - nakup.total) / price * 1000) / 10;
             const profit = price - nakup.total;
