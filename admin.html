@@ -381,7 +381,7 @@ async function searchProdukt(artikl) {
   const { data } = await sb.from('produkty_katalog')
     .select('nazev,cena_bez_dph,cena_s_dph,obrazek_url,eshop_url')
     .eq('kod_vyrobku', artikl).maybeSingle();
-  if (data) return { n: data.nazev, b: data.cena_bez_dph, s: data.cena_s_dph, f: data.obrazek_url || db[artikl]?.f || '', u: data.eshop_url };
+  if (data) { const f = (data.obrazek_url?.startsWith('http') ? data.obrazek_url : null) || db[artikl]?.f || ''; return { n: data.nazev, b: data.cena_bez_dph, s: data.cena_s_dph, f, u: data.eshop_url }; }
   return db[artikl] || null;  // fallback na lokální produkty.json
 }
 
