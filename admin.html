@@ -1083,10 +1083,10 @@ async function exportSet(id) {
     <article class="set">
       ${setHeaderHTML}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div style="background:#fff;border:1px solid #c8c8c8;border-radius:14px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:340px">${bigImgEl}</div>
+        <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:340px">${bigImgEl}</div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div style="border-radius:14px;overflow:hidden;background:#DB011C;aspect-ratio:3/2;flex-shrink:0">${bannerEl}</div>
-          <div style="background:#fff;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;flex:1;display:flex;flex-direction:column">
+          <div style="border-radius:11px;overflow:hidden;background:#DB011C;aspect-ratio:3/2;flex-shrink:0">${bannerEl}</div>
+          <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column">
             <div style="padding:10px 20px;border-bottom:1px solid #c8c8c8;display:flex;justify-content:space-between;align-items:center">
               <span style="color:#777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em">${esc(p0.artiklove_cislo)}</span>
               ${p0.odkaz_eshop ? '<span style="color:#DB011C;font-size:12px;font-weight:600">Detail ↗</span>' : ''}
@@ -1132,7 +1132,7 @@ async function exportSet(id) {
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#f8f8f8;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-    .set{background:#eeeeee;border:1px solid #c0c0c0;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px}
+    .set{background:#eeeeee;border:1px solid #c0c0c0;border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
     .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #c0c0c0;gap:20px;flex-wrap:wrap}
     .set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#111111}
     .set-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -1141,8 +1141,8 @@ async function exportSet(id) {
     .save-value{color:#111111;font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
     .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:7px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
     .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-    .card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-    .card-img{background:#f7f7f7;aspect-ratio:1/1;margin:12px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
+    .card-img{background:#f7f7f7;aspect-ratio:1/1;margin:12px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #c8c8c8;gap:8px}
     .sku{color:#777777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
@@ -1159,16 +1159,16 @@ async function exportSet(id) {
     .sum-sublabel{color:#999999;font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:8px}
     .sum-value{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:#111111}
     .sum-value.list{color:#999999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
-    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:5px 13px;border-radius:9px}
+    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:5px 13px;border-radius:7px}
     .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
-    .price-card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+    .price-card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;display:flex;flex-direction:column;overflow:hidden}
     .price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #c8c8c8;text-align:right}
     .price-card-bot{padding:8px 18px 18px;flex:none;display:flex;flex-direction:column;text-align:right}
     .price-card .sum-label{font-size:12px}
     .price-card .sum-sublabel{font-size:12px;margin-bottom:6px}
     .price-card .sum-vat{font-size:13px;margin-top:4px;margin-bottom:0}
     .price-card .sum-value{font-size:26px;letter-spacing:-.02em}
-    .price-card .sum-value.sale{font-size:33px;margin-top:2px;padding:5px 13px;border-radius:9px}
+    .price-card .sum-value.sale{font-size:33px;margin-top:2px;padding:5px 13px;border-radius:7px}
     .price-card-bot .sum-label{color:#DB011C}
     .pc-prices{margin-top:auto}
   `;
@@ -1291,7 +1291,7 @@ async function uploadSlevaImg(sid, input) {
     if (existing) { existing.src = publicUrl; }
     else {
       const placeholder = sec.querySelector('div[style*="background:var(--red)"]');
-      if (placeholder) placeholder.outerHTML = `<img src="${publicUrl}" style="width:100%;max-width:260px;height:auto;border-radius:8px;aspect-ratio:3/2;object-fit:cover">`;
+      if (placeholder) placeholder.outerHTML = `<img src="${publicUrl}" style="width:100%;max-width:260px;height:auto;border-radius:6px;aspect-ratio:3/2;object-fit:cover">`;
     }
   }
 }
