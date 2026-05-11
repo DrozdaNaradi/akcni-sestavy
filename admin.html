@@ -130,6 +130,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 .marze-btn:hover{background:var(--surface-3);border-color:var(--line-s)}
 .marze-btn .m-pct{font-size:15px;font-weight:700;color:var(--text)}
 .marze-btn .m-price{font-size:12px;color:var(--text-3)}
+.marze-btn .m-profit{font-size:11px;color:var(--green);font-weight:600;margin-top:1px}
+.marze-btn.selected{background:rgba(36,138,61,.1);border-color:var(--green)}
+.marze-btn.selected .m-pct{color:var(--green)}
+.marze-btn.selected .m-price{color:var(--green)}
+.marze-live{font-size:13px;font-weight:600;color:var(--green);margin-top:4px;min-height:18px}
 
 /* EMPTY / LOADING */
 .empty{text-align:center;padding:56px 20px;color:var(--text-3)}
@@ -491,10 +496,19 @@ function getNakupCelkem(s) {
   return found ? { total: Math.round(total * 100) / 100, found, all: found === prods.length } : null;
 }
 
-function setMarze(sid, nakupTotal, marze) {
-  const prodejni = Math.round(nakupTotal / (1 - marze));
+function roundPrice(price) {
+  return Math.ceil((price + 1) / 50) * 50 - 1;
+}
+
+function setMarze(sid, nakupTotal, marze, btn) {
+  const prodejni = roundPrice(nakupTotal / (1 - marze));
   const el = document.getElementById('ac-' + sid);
   if (el) { el.value = prodejni; calcDphPreview(sid); el.focus(); }
+  // zvýraznit vybrané tlačítko
+  if (btn) {
+    btn.closest('.marze-btns').querySelectorAll('.marze-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
 }
 
 // ── INIT ─────────────────────────────────────
@@ -778,6 +792,13 @@ function cardHTML(s) {
             <span class="pv-sub"> / ${fmt(slevaS)} s DPH</span>
           </span>
         </div>
+        ${nakup ? `<div class="price-row">
+          <span class="pl">Naše marže</span>
+          <span id="marze-live-${s.id}" class="marze-live" data-nakup="${nakup.total}">
+            ${akcni > 0 ? (() => { const profit = akcni - nakup.total; const p = Math.round(profit/akcni*1000)/10; return profit >= 0 ? `${p} % · zisk ${fmt(profit)} Kč` : `Pod nákupem! –${fmt(Math.abs(profit))} Kč`; })() : '–'}
+          </span>
+          <span id="nakup-total-val-${s.id}" data-nakup="${nakup.total}" style="display:none"></span>
+        </div>` : ''}
       </div>
       ${nakup ? `
       <div class="nakup-box">
@@ -788,10 +809,13 @@ function cardHTML(s) {
         <div class="marze-label">Navrhované prodejní ceny (bez DPH)</div>
         <div class="marze-btns">
           ${[25,30,35,40,45].map(m => {
-            const price = Math.round(nakup.total / (1 - m/100));
-            return `<button class="marze-btn" onclick="ev(event);setMarze('${s.id}',${nakup.total},${m/100})">
-              <span class="m-pct">${m} %</span>
+            const price = roundPrice(nakup.total / (1 - m/100));
+            const actualPct = Math.round((price - nakup.total) / price * 1000) / 10;
+            const profit = price - nakup.total;
+            return `<button class="marze-btn" onclick="ev(event);setMarze('${s.id}',${nakup.total},${m/100},this)">
+              <span class="m-pct">${actualPct} %</span>
               <span class="m-price">${fmt(price)} Kč</span>
+              <span class="m-profit">+ ${fmt(profit)} Kč</span>
             </button>`;
           }).join('')}
         </div>
@@ -1175,8 +1199,23 @@ function togglePromoUI(sid, val) {
 
 function calcDphPreview(id) {
   const bez = parseFloat(document.getElementById('ac-'+id).value) || 0;
-  const el = document.getElementById('ac-s-'+id);
-  if (el) el.value = Math.round(bez * 1.21);
+  const elS = document.getElementById('ac-s-'+id);
+  if (elS) elS.value = Math.round(bez * 1.21);
+  const elM = document.getElementById('marze-live-'+id);
+  if (elM && bez > 0) {
+    const nakupEl = document.getElementById('nakup-total-val-'+id);
+    if (nakupEl) {
+      const nakup = parseFloat(nakupEl.dataset.nakup) || 0;
+      if (nakup > 0) {
+        const profit = bez - nakup;
+        const pct = Math.round(profit / bez * 1000) / 10;
+        elM.textContent = profit >= 0
+          ? `Naše marže: ${pct} % · zisk ${fmt(profit)} Kč bez DPH`
+          : `Prodáváme pod nákupem! – ${fmt(Math.abs(profit))} Kč`;
+        elM.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+      }
+    }
+  }
 }
 
 async function saveSestava(id) {
