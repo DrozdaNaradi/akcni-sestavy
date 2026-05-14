@@ -512,7 +512,7 @@ function getNakupCelkem(s) {
   let total = 0, found = 0;
   for (const p of prods) {
     const c = nakupniCeny[p.artiklove_cislo];
-    if (c > 0) { total += c; found++; }
+    if (c > 0) { total += c * (p.pocet_kusu || 1); found++; }
   }
   return found ? { total: Math.round(total * 100) / 100, found, all: found === prods.length } : null;
 }
@@ -616,7 +616,7 @@ async function saveField(id, field, val) {
   return !error;
 }
 
-async function addProdukt(sid, artikl, bezDph, sDph, p) {
+async function addProdukt(sid, artikl, bezDph, sDph, p, qty = 1) {
   if (!p) return false;
   await sb.from('produkty_sestavy').insert({
     sestava_id: sid,
@@ -626,6 +626,7 @@ async function addProdukt(sid, artikl, bezDph, sDph, p) {
     cena_bez_dph: bezDph ?? p.b ?? 0,
     cena_s_dph:   sDph   ?? p.s ?? 0,
     odkaz_eshop: p.u || '',
+    pocet_kusu: qty,
     poradi: Date.now()
   });
   return true;
@@ -642,8 +643,8 @@ function fmt(n)   { return Number(n||0).toLocaleString('cs-CZ',{maximumFractionD
 
 function calc(s) {
   const prods  = s.produkty_sestavy || [];
-  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
-  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph) * (p.pocet_kusu || 1), 0);
+  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph)   * (p.pocet_kusu || 1), 0);
   const akcni  = Number(s.akcni_cena) || 0;
   const akcniS = Math.round(akcni * 1.21);
   const slevaBez = celBez - akcni;
@@ -682,17 +683,20 @@ function cardHTML(s) {
         const nc = nakupniCenyLoaded ? nakupniCeny[p.artiklove_cislo] : null;
         return `
       <div class="prod-item">
-        <img class="prod-img" src="${p.foto_url}" onerror="this.style.opacity='.2'" alt="">
+        <div style="position:relative;flex-shrink:0">
+          <img class="prod-img" src="${p.foto_url}" onerror="this.style.opacity='.2'" alt="">
+          ${(p.pocet_kusu||1) > 1 ? `<span style="position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:5px;padding:2px 5px;line-height:1">${p.pocet_kusu}×</span>` : ''}
+        </div>
         <div class="prod-info">
-          <div class="prod-name">${p.nazev}</div>
+          <div class="prod-name">${(p.pocet_kusu||1) > 1 ? `<span style="color:var(--red);font-weight:700">${p.pocet_kusu}×</span> ` : ''}${p.nazev}</div>
           <div class="prod-sub" style="display:flex;gap:8px;align-items:center">
             <span>Artikl: ${p.artiklove_cislo}</span>
-            ${nc ? `<span class="nakup-badge">Nákup: ${fmt(nc)} Kč</span>` : ''}
+            ${nc ? `<span class="nakup-badge">Nákup: ${fmt(nc * (p.pocet_kusu||1))} Kč</span>` : ''}
           </div>
         </div>
         <div class="prod-ceny">
-          <div class="prod-cena-bez">${fmt(p.cena_bez_dph)} Kč</div>
-          <div class="prod-cena-s">${fmt(p.cena_s_dph)} Kč s DPH</div>
+          <div class="prod-cena-bez">${fmt(Number(p.cena_bez_dph) * (p.pocet_kusu||1))} Kč</div>
+          <div class="prod-cena-s">${fmt(Number(p.cena_s_dph) * (p.pocet_kusu||1))} Kč s DPH</div>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="ev(event);delProd('${p.id}','${s.id}')" title="Odebrat">✕</button>
       </div>`;
@@ -900,6 +904,10 @@ async function preview(sid) {
             <label>Cena S DPH (Kč)</label>
             <input class="inp" type="number" id="ps-${sid}" value="${p.s||0}" min="0" step="1">
           </div>
+          <div class="preview-field">
+            <label>Počet kusů</label>
+            <input class="inp" type="number" id="pq-${sid}" value="1" min="1" step="1" style="width:90px">
+          </div>
         </div>
       </div>
     </div>`;
@@ -908,13 +916,15 @@ async function preview(sid) {
 async function doAdd(sid) {
   const artikl = document.getElementById('a-'+sid).value.trim();
   if (!artikl) return;
-  const bezEl = document.getElementById('pb-'+sid);
+  const bezEl  = document.getElementById('pb-'+sid);
   const sDphEl = document.getElementById('ps-'+sid);
+  const qtyEl  = document.getElementById('pq-'+sid);
   const bez  = bezEl  ? parseFloat(bezEl.value)||0  : null;
   const sDph = sDphEl ? parseFloat(sDphEl.value)||0 : null;
+  const qty  = qtyEl  ? Math.max(1, parseInt(qtyEl.value)||1) : 1;
   const p = await searchProdukt(artikl);
   if (!p) { alert('Artikl '+artikl+' nebyl nalezen v katalogu.'); return; }
-  await addProdukt(sid, artikl, bez ?? p.b, sDph ?? p.s, p);
+  await addProdukt(sid, artikl, bez ?? p.b, sDph ?? p.s, p, qty);
   document.getElementById('a-'+sid).value = '';
   document.getElementById('pv-'+sid).innerHTML = '';
   await refreshKeepState(sid);

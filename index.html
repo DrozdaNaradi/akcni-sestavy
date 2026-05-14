@@ -323,8 +323,8 @@ async function load() {
 
   el.innerHTML = sestavy.map(s => {
     const prods   = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-    const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
-    const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+    const celBez  = prods.reduce((a,p) => a + Number(p.cena_bez_dph) * (p.pocet_kusu || 1), 0);
+    const celS    = prods.reduce((a,p) => a + Number(p.cena_s_dph)   * (p.pocet_kusu || 1), 0);
     const akcni   = Number(s.akcni_cena) || 0;
     const akcniS  = Math.round(akcni * 1.21);
     const slevaBez = celBez - akcni;
@@ -361,13 +361,15 @@ async function load() {
     let mainHTML;
     if (s.jedan_artikl && prods.length > 0) {
       const p = prods[0];
+      const qty = p.pocet_kusu || 1;
       const bannerImg = s.sleva_obrazek_url
         ? `<img src="${esc(s.sleva_obrazek_url)}" alt="Akční nabídka">`
         : '';
       mainHTML = `
         <div class="promo-layout">
-          <div class="promo-left" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
+          <div class="promo-left" style="position:relative" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
             <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
+            ${qty > 1 ? `<span style="position:absolute;top:12px;right:12px;background:#DB011C;color:#fff;font-size:14px;font-weight:800;border-radius:7px;padding:4px 10px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
           </div>
           <div class="promo-right">
             <div class="promo-banner">${bannerImg}</div>
@@ -377,10 +379,10 @@ async function load() {
                 <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
               </div>
               <div class="card-body">
-                <h3 class="prod-name">${esc(p.nazev)}</h3>
+                <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
                 <div class="price-row">
-                  <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
-                  <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+                  <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+                  <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
                 </div>
               </div>
             </div>
@@ -404,24 +406,28 @@ async function load() {
             </div>
           </div>
         </div>`;
-      mainHTML = `<div class="grid">${prods.slice(0,3).map(p => `
+      mainHTML = `<div class="grid">${prods.slice(0,3).map(p => {
+        const qty = p.pocet_kusu || 1;
+        return `
         <div class="card">
-          <div class="card-img" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
+          <div class="card-img" style="position:relative" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
             <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
+            ${qty > 1 ? `<span style="position:absolute;top:8px;right:8px;background:#DB011C;color:#fff;font-size:12px;font-weight:800;border-radius:6px;padding:3px 7px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
           </div>
           <div class="card-meta">
             <span class="sku">${esc(p.artiklove_cislo)}</span>
             <button class="detail-link" style="background:none;border:none;cursor:pointer;font-family:inherit" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">Detail ↗</button>
           </div>
           <div class="card-body">
-            <h3 class="prod-name">${esc(p.nazev)}</h3>
+            <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
             <div class="price-row">
               <div class="price-label">Ceníková cena</div>
-              <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
-              <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+              <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+              <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
             </div>
           </div>
-        </div>`).join('')}${priceCard}</div>`;
+        </div>`;
+      }).join('')}${priceCard}</div>`;
     }
 
     const hasSummary = s.jedan_artikl && prods.length > 0;
