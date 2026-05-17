@@ -1373,7 +1373,8 @@ async function togglePoptavka(id, status) {
 
 async function smazatPoptavku(id) {
   if (!confirm('Opravdu smazat tuto poptávku?')) return;
-  await sb.from('poptavky').delete().eq('id', id);
+  const { error } = await sb.from('poptavky').delete().eq('id', id);
+  if (error) { alert('Chyba mazání: ' + error.message); return; }
   loadPoptavky();
 }
 
