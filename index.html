@@ -189,6 +189,53 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .sum-value.list{font-size:20px}
   .topbar-inner{flex-wrap:wrap;gap:10px}
 }
+
+/* PC-SAVINGS */
+.pc-savings{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:right}
+.light .pc-savings{border-top-color:rgba(0,0,0,0.1)}
+.pc-savings-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:3px}
+.pc-savings-value{font-size:16px;font-weight:700;color:#f5f5f5;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.light .pc-savings-value{color:#111}
+
+/* PC-ACTION-ROW */
+.pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px}
+.pc-action-row .save-pct{font-size:14px;padding:6px 10px;display:flex;align-items:center;border-radius:6px;line-height:1}
+
+/* BTN-ZAJEM */
+.btn-zajem{margin-top:14px;width:100%;padding:13px 16px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s}
+.btn-zajem:hover{opacity:.85}
+
+/* MODAL POPTÁVKA */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.hidden{display:none}
+.modal-box{background:#1a1a1a;border:1px solid #333;border-radius:16px;width:100%;max-width:480px;padding:32px;position:relative;max-height:90vh;overflow-y:auto}
+.light .modal-box{background:#fff;border-color:#ddd}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;cursor:pointer;color:#888;font-size:24px;line-height:1;padding:4px 8px}
+.modal-close:hover{color:#f5f5f5}
+.light .modal-close:hover{color:#111}
+.modal-title{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;color:var(--text)}
+.modal-subtitle{font-size:13px;color:var(--text-3);margin-bottom:24px;font-style:italic}
+.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3)}
+.form-input{background:#111;border:1px solid #333;border-radius:8px;padding:11px 14px;font-family:inherit;font-size:15px;color:#f5f5f5;outline:none;transition:border-color .15s;width:100%}
+.light .form-input{background:#f5f5f5;border-color:#ccc;color:#111}
+.form-input:focus{border-color:var(--red)}
+.radio-group{display:flex;flex-direction:column;gap:8px}
+.radio-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #333;border-radius:8px;cursor:pointer;transition:border-color .15s}
+.light .radio-opt{border-color:#ccc}
+.radio-opt:has(input:checked){border-color:var(--red)}
+.radio-opt input{accent-color:var(--red);width:16px;height:16px;flex-shrink:0;cursor:pointer}
+.radio-opt-text{font-size:14px;font-weight:600;color:var(--text);line-height:1.2}
+.radio-opt-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.zaslat-note{background:rgba(219,1,28,.1);border:1px solid rgba(219,1,28,.25);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--text-2);margin-top:8px;display:none;line-height:1.5}
+.zaslat-note.show{display:block}
+.btn-submit{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .15s;letter-spacing:-.01em}
+.btn-submit:hover{opacity:.85}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed}
+.modal-success{text-align:center;padding:32px 0}
+.modal-success-icon{font-size:52px;margin-bottom:16px}
+.modal-success h3{font-size:22px;font-weight:700;margin-bottom:10px;color:var(--text)}
+.modal-success p{font-size:14px;color:var(--text-3);line-height:1.6}
 </style>
 </head>
 <body>
@@ -232,6 +279,54 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 </main>
 
 <footer class="page-footer">© <span id="pg-footer-brand">Drozda Nářadí</span> · Akce platí jen po omezenou dobu.</footer>
+
+<div class="modal-overlay hidden" id="poptavka-modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closePoptavka()">×</button>
+    <div id="poptavka-form-wrap">
+      <div class="modal-title">Mám zájem o sestavu</div>
+      <div class="modal-subtitle" id="poptavka-nazev-label"></div>
+      <div class="form-group">
+        <label class="form-label">Jméno a příjmení *</label>
+        <input class="form-input" id="p-jmeno" type="text" placeholder="Jan Novák">
+      </div>
+      <div class="form-group">
+        <label class="form-label">E-mail *</label>
+        <input class="form-input" id="p-email" type="email" placeholder="jan@firma.cz">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon *</label>
+        <input class="form-input" id="p-telefon" type="tel" placeholder="+420 123 456 789">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Způsob převzetí</label>
+        <div class="radio-group">
+          <label class="radio-opt">
+            <input type="radio" name="doruceni" value="vyzvednutí" checked onchange="onDoruceniChange(this)">
+            <div>
+              <div class="radio-opt-text">Vyzvednu osobně</div>
+              <div class="radio-opt-sub">V den konání akce na prodejně</div>
+            </div>
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="doruceni" value="zaslání" onchange="onDoruceniChange(this)">
+            <div>
+              <div class="radio-opt-text">Zaslat</div>
+              <div class="radio-opt-sub">Domluvíme se na dopravě</div>
+            </div>
+          </label>
+        </div>
+        <div class="zaslat-note" id="zaslat-note">Po odeslání formuláře vás kontaktujeme a domluvíme způsob dopravy a platby.</div>
+      </div>
+      <button class="btn-submit" id="p-submit" onclick="submitPoptavka()">Odeslat zájem</button>
+    </div>
+    <div class="modal-success hidden" id="poptavka-success">
+      <div class="modal-success-icon">✅</div>
+      <h3>Zájem odeslán!</h3>
+      <p>Brzy vás budeme kontaktovat.<br>Děkujeme za váš zájem.</p>
+    </div>
+  </div>
+</div>
 
 <script>
 // Theme — init button label after DOM ready
@@ -333,13 +428,6 @@ async function load() {
     const setHeader = `
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
-        <div class="set-header-right">
-          <div class="save-block">
-            <div class="save-label">${s.jedan_artikl ? 'Celkem ušetříte' : 'Na této sestavě ušetříte celkem'}</div>
-            <div class="save-value">${fmtKc(slevaBez)}</div>
-          </div>
-          <div class="save-pct">−${pct} %</div>
-        </div>
       </header>`;
 
     const summary = `
@@ -396,14 +484,22 @@ async function load() {
             <div class="sum-sublabel">Cena bez DPH 21 %</div>
             <div class="sum-value list">${fmtKc(celBez)}</div>
             <div class="sum-vat">${fmtKcDph(celS)}</div>
+            <div class="pc-savings">
+              <div class="pc-savings-label">${s.jedan_artikl ? 'Celkem ušetříte' : 'Na této sestavě ušetříte celkem'}</div>
+              <div class="pc-savings-value">${fmtKc(slevaBez)}</div>
+            </div>
           </div>
           <div class="price-card-bot">
             <div class="pc-prices">
               <div class="sum-vat">${fmtKcDph(akcniS)}</div>
               <div class="sum-label" style="margin-top:6px">Akční cena sestavy</div>
               <div class="sum-sublabel" style="margin-bottom:4px">Cena bez DPH 21 %</div>
-              <div class="sum-value sale">${fmtKc(akcni)}</div>
+              <div class="pc-action-row">
+                <div class="sum-value sale">${fmtKc(akcni)}</div>
+                <div class="save-pct">−${pct} %</div>
+              </div>
             </div>
+            <button class="btn-zajem" onclick="openPoptavka('${s.id}','${esc(s.nazev)}')">Mám o sestavu zájem</button>
           </div>
         </div>`;
       mainHTML = `<div class="grid">${prods.slice(0,3).map(p => {
@@ -434,6 +530,67 @@ async function load() {
     return `<article class="set">${setHeader}${mainHTML}${hasSummary ? summary : ''}</article>`;
   }).join('');
 }
+
+let poptavkaSestavId = null;
+let poptavkaSestavNazev = '';
+
+function openPoptavka(id, nazev) {
+  poptavkaSestavId = id;
+  poptavkaSestavNazev = nazev;
+  document.getElementById('poptavka-nazev-label').textContent = nazev;
+  document.getElementById('poptavka-form-wrap').classList.remove('hidden');
+  document.getElementById('poptavka-success').classList.add('hidden');
+  document.getElementById('p-jmeno').value = '';
+  document.getElementById('p-email').value = '';
+  document.getElementById('p-telefon').value = '';
+  document.querySelector('input[name="doruceni"][value="vyzvednutí"]').checked = true;
+  document.getElementById('zaslat-note').classList.remove('show');
+  document.getElementById('p-submit').disabled = false;
+  document.getElementById('p-submit').textContent = 'Odeslat zájem';
+  document.getElementById('poptavka-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePoptavka() {
+  document.getElementById('poptavka-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function onDoruceniChange(el) {
+  document.getElementById('zaslat-note').classList.toggle('show', el.value === 'zaslání');
+}
+
+async function submitPoptavka() {
+  const jmeno    = document.getElementById('p-jmeno').value.trim();
+  const email    = document.getElementById('p-email').value.trim();
+  const telefon  = document.getElementById('p-telefon').value.trim();
+  const doruceni = document.querySelector('input[name="doruceni"]:checked').value;
+  if (!jmeno || !email || !telefon) { alert('Vyplňte prosím všechna povinná pole.'); return; }
+  const btn = document.getElementById('p-submit');
+  btn.disabled = true;
+  btn.textContent = 'Odesílám…';
+  try {
+    const { error } = await sb.from('poptavky').insert({
+      sestava_id: poptavkaSestavId,
+      sestava_nazev: poptavkaSestavNazev,
+      jmeno, email, telefon,
+      zpusob_doruceni: doruceni,
+      status: 'nová'
+    });
+    if (error) throw error;
+    document.getElementById('poptavka-form-wrap').classList.add('hidden');
+    document.getElementById('poptavka-success').classList.remove('hidden');
+    setTimeout(closePoptavka, 3000);
+  } catch(e) {
+    alert('Chyba při odesílání: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = 'Odeslat zájem';
+  }
+}
+
+document.getElementById('poptavka-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePoptavka();
+});
 
 load();
 </script>

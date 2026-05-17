@@ -146,6 +146,22 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
   .preview-field .inp,.price-field .inp{width:100%}
 }
 
+/* POPTÁVKY */
+.poptavka-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:opacity .2s;margin-bottom:8px}
+.poptavka-item.vyrizen{opacity:.4}
+.poptavka-badge{font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:20px;flex-shrink:0;margin-top:2px;white-space:nowrap}
+.poptavka-badge.nova{background:rgba(228,0,43,.12);color:var(--red)}
+.poptavka-badge.vyrizen{background:var(--surface-2);color:var(--text-3)}
+.poptavka-info{flex:1;min-width:0}
+.poptavka-nazev{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px;color:var(--text)}
+.poptavka-row{font-size:13px;color:var(--text-3);margin-bottom:2px}
+.poptavka-row strong{color:var(--text-2);font-weight:600}
+.poptavka-date{font-size:11px;color:var(--text-3);margin-top:6px}
+.poptavka-actions{flex-shrink:0}
+.btn-vyridit{font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;border:1px solid var(--line-s);background:none;color:var(--text-3);cursor:pointer;font-family:inherit;transition:border-color .15s,color .15s;white-space:nowrap}
+.btn-vyridit:hover{border-color:var(--text-3);color:var(--text)}
+.poptavky-empty{padding:28px;text-align:center;color:var(--text-3);font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+
 /* ICON PICKER */
 .icon-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .icon-opt{width:64px;cursor:pointer;border-radius:10px;border:2px solid transparent;padding:6px;background:var(--surface-2);display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color .15s}
@@ -262,6 +278,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
         </div>
       </div>
     </div>
+
+    <div class="page-header">
+      <h1 class="page-title">Poptávky</h1>
+      <button class="btn btn-secondary btn-sm" onclick="loadPoptavky()">↻ Obnovit</button>
+    </div>
+    <div id="poptavky-list" style="margin-bottom:48px"><div class="loading">Načítání…</div></div>
 
     <div class="page-header">
       <h1 class="page-title">Akční sestavy</h1>
@@ -1306,10 +1328,46 @@ async function uploadSlevaImg(sid, input) {
   }
 }
 
+// ── POPTÁVKY ─────────────────────────────────
+async function loadPoptavky() {
+  const el = document.getElementById('poptavky-list');
+  if (!el) return;
+  el.innerHTML = '<div class="loading">Načítání…</div>';
+  const { data, error } = await sb.from('poptavky').select('*').order('created_at', { ascending: false });
+  if (error || !data) { el.innerHTML = '<div class="poptavky-empty">Chyba načtení poptávek.</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div class="poptavky-empty">Zatím žádné poptávky.</div>'; return; }
+  el.innerHTML = data.map(p => {
+    const d = new Date(p.created_at);
+    const ds = d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
+    const vyrizen = p.status === 'vyřízeno';
+    return `<div class="poptavka-item${vyrizen ? ' vyrizen' : ''}" id="popt-${p.id}">
+      <div class="poptavka-badge ${vyrizen ? 'vyrizen' : 'nova'}">${vyrizen ? 'Vyřízeno' : 'Nová'}</div>
+      <div class="poptavka-info">
+        <div class="poptavka-nazev">${esc(p.sestava_nazev || '—')}</div>
+        <div class="poptavka-row"><strong>${esc(p.jmeno)}</strong></div>
+        <div class="poptavka-row">${esc(p.email)} · ${esc(p.telefon)}</div>
+        <div class="poptavka-row">Způsob: <strong>${esc(p.zpusob_doruceni)}</strong></div>
+        <div class="poptavka-date">${ds}</div>
+      </div>
+      <div class="poptavka-actions">
+        ${!vyrizen
+          ? `<button class="btn-vyridit" onclick="vyriditPoptavku('${p.id}')">✓ Vyřídit</button>`
+          : `<span style="font-size:12px;color:var(--text-3)">✓ Vyřízeno</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function vyriditPoptavku(id) {
+  await sb.from('poptavky').update({ status: 'vyřízeno' }).eq('id', id);
+  loadPoptavky();
+}
+
 // ── BOOT ─────────────────────────────────────
 if (sessionStorage.getItem('auth') === '1') {
   document.getElementById('app').style.display = 'block';
   init();
+  loadPoptavky();
 } else {
   document.getElementById('login').style.display = 'flex';
 }
