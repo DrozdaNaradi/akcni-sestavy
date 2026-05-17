@@ -197,9 +197,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .pc-savings-value{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 
 /* PC-ACTION-ROW */
-.pc-action-row{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:2px;flex-wrap:nowrap}
-.pc-action-row .sum-value{flex-shrink:1;min-width:0;display:block}
-.pc-action-row .save-pct{flex-shrink:0;font-size:14px;padding:6px 10px;border-radius:6px;line-height:1;align-self:stretch;display:flex;align-items:center}
+.pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px;flex-wrap:nowrap}
+.pc-action-row .sum-value,.pc-action-row .sum-value.sale,.pc-action-row .sum-value.list{flex-shrink:1;min-width:0;display:flex!important;align-items:center;margin:0!important;padding:8px 12px!important;border-radius:6px}
+.pc-action-row .save-pct{flex-shrink:0;font-size:14px;padding:8px 12px;border-radius:6px;line-height:1;display:flex;align-items:center}
 
 /* BTN-ZAJEM */
 .btn-zajem{padding:10px 20px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
