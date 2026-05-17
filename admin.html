@@ -1333,8 +1333,9 @@ async function loadPoptavky() {
   const el = document.getElementById('poptavky-list');
   if (!el) return;
   el.innerHTML = '<div class="loading">Načítání…</div>';
+  try {
   const { data, error } = await sb.from('poptavky').select('*').order('created_at', { ascending: false });
-  if (error || !data) { el.innerHTML = '<div class="poptavky-empty">Chyba načtení poptávek.</div>'; return; }
+  if (error || !data) { el.innerHTML = '<div class="poptavky-empty">Chyba načtení poptávek: ' + (error?.message || 'žádná data') + '</div>'; return; }
   if (!data.length) { el.innerHTML = '<div class="poptavky-empty">Zatím žádné poptávky.</div>'; return; }
   el.innerHTML = data.map(p => {
     const d = new Date(p.created_at);
@@ -1356,6 +1357,9 @@ async function loadPoptavky() {
       </div>
     </div>`;
   }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="poptavky-empty">Chyba: ' + e.message + '</div>';
+  }
 }
 
 async function vyriditPoptavku(id) {
@@ -1366,8 +1370,7 @@ async function vyriditPoptavku(id) {
 // ── BOOT ─────────────────────────────────────
 if (sessionStorage.getItem('auth') === '1') {
   document.getElementById('app').style.display = 'block';
-  init();
-  loadPoptavky();
+  init().then(() => loadPoptavky());
 } else {
   document.getElementById('login').style.display = 'flex';
 }
