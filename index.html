@@ -198,8 +198,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .light .pc-savings-value{color:#111}
 
 /* PC-ACTION-ROW */
-.pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px}
-.pc-action-row .save-pct{font-size:14px;padding:6px 10px;display:flex;align-items:center;border-radius:6px;line-height:1}
+.pc-action-row{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:2px;flex-wrap:nowrap}
+.pc-action-row .sum-value{flex-shrink:1;min-width:0}
+.pc-action-row .save-pct{flex-shrink:0;font-size:14px;padding:6px 10px;border-radius:6px;line-height:1;align-self:stretch;display:flex;align-items:center}
 
 /* BTN-ZAJEM */
 .btn-zajem{padding:10px 20px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
