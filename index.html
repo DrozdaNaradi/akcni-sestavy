@@ -194,7 +194,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .pc-savings{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);text-align:right}
 .light .pc-savings{border-top-color:rgba(0,0,0,0.1)}
 .pc-savings-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:3px}
-.pc-savings-value{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.pc-savings-value{font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 
 /* PC-ACTION-ROW */
 .pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px;flex-wrap:nowrap}
@@ -430,7 +430,7 @@ async function load() {
     const setHeader = `
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
-        <button class="btn-zajem btn-zajem-header" onclick="openPoptavka('${s.id}','${esc(s.nazev)}')">Mám o sestavu zájem</button>
+        <button class="btn-zajem btn-zajem-header" onclick="openPoptavka('${s.id}','${esc(s.nazev)}')">Mám zájem o sestavu</button>
       </header>`;
 
     const summary = `
