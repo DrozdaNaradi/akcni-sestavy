@@ -202,7 +202,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .pc-action-row .save-pct{font-size:14px;padding:6px 10px;display:flex;align-items:center;border-radius:6px;line-height:1}
 
 /* BTN-ZAJEM */
-.btn-zajem{margin-top:14px;width:100%;padding:13px 16px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s}
+.btn-zajem{padding:10px 20px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
 .btn-zajem:hover{opacity:.85}
 
 /* MODAL POPTÁVKA */
@@ -428,6 +428,7 @@ async function load() {
     const setHeader = `
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
+        <button class="btn-zajem btn-zajem-header" onclick="openPoptavka('${s.id}','${esc(s.nazev)}')">Mám o sestavu zájem</button>
       </header>`;
 
     const summary = `
@@ -499,7 +500,6 @@ async function load() {
                 <div class="save-pct">−${pct} %</div>
               </div>
             </div>
-            <button class="btn-zajem" onclick="openPoptavka('${s.id}','${esc(s.nazev)}')">Mám o sestavu zájem</button>
           </div>
         </div>`;
       mainHTML = `<div class="grid">${prods.slice(0,3).map(p => {
