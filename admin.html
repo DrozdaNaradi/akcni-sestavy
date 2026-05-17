@@ -1014,8 +1014,8 @@ async function exportSet(id) {
   if (btn) { btn.disabled = true; btn.textContent = 'Načítám obrázky…'; }
 
   const prods  = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph), 0);
-  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph),   0);
+  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph) * (p.pocet_kusu || 1), 0);
+  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph)   * (p.pocet_kusu || 1), 0);
   const akcni  = Number(s.akcni_cena) || 0;
   const akcniS = Math.round(akcni * 1.21);
   const slevaBez = celBez - akcni;
@@ -1044,7 +1044,6 @@ async function exportSet(id) {
 
   if (btn) btn.textContent = 'Renderuji…';
 
-  function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function fmtKc(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč'; }
   function fmtKcDph(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč s DPH'; }
 
@@ -1056,6 +1055,7 @@ async function exportSet(id) {
     const dw = Math.round(dims.w * ratio);
     const dh = Math.round(dims.h * ratio);
     const imgEl = src ? `<img src="${src}" width="${dw}" height="${dh}" style="display:block">` : '';
+    const qty = p.pocet_kusu || 1;
     return `
     <div class="card">
       <div class="card-img" style="display:flex;align-items:center;justify-content:center;background:#fff">${imgEl}</div>
@@ -1064,11 +1064,11 @@ async function exportSet(id) {
         ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
       </div>
       <div class="card-body">
-        <h3 class="prod-name">${esc(p.nazev)}</h3>
+        <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
         <div class="price-row">
           <div class="price-label">Ceníková cena</div>
-          <div class="price-main">${fmtKc(p.cena_bez_dph)}</div>
-          <div class="price-vat">${fmtKcDph(p.cena_s_dph)}</div>
+          <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+          <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
         </div>
       </div>
     </div>`;
@@ -1105,6 +1105,7 @@ async function exportSet(id) {
   let setHTML;
   if (s.jedan_artikl && prods.length > 0) {
     const p0 = prods[0];
+    const qty0 = p0.pocet_kusu || 1;
     const src0 = imgMap[p0.foto_url] || '';
     const dims0 = imgDims[p0.foto_url] || {w:200,h:200};
     const maxBig = 460;
@@ -1127,10 +1128,10 @@ async function exportSet(id) {
               ${p0.odkaz_eshop ? '<span style="color:#DB011C;font-size:12px;font-weight:600">Detail ↗</span>' : ''}
             </div>
             <div style="padding:16px 20px 22px;flex:1;display:flex;flex-direction:column;gap:12px">
-              <div style="font-size:22px;font-weight:700;line-height:1.2;color:#111;flex:1">${esc(p0.nazev)}</div>
+              <div style="font-size:22px;font-weight:700;line-height:1.2;color:#111;flex:1">${qty0 > 1 ? `<span style="color:#DB011C;font-weight:800">${qty0}×</span> ` : ''}${esc(p0.nazev)}</div>
               <div style="border-top:1px solid #c8c8c8;padding-top:14px">
-                <div style="font-size:34px;font-weight:700;color:#111;letter-spacing:-.02em">${fmtKc(p0.cena_bez_dph)}</div>
-                <div style="font-size:13px;color:#777;margin-top:4px">${fmtKcDph(p0.cena_s_dph)}</div>
+                <div style="font-size:34px;font-weight:700;color:#111;letter-spacing:-.02em">${fmtKc(Number(p0.cena_bez_dph) * qty0)}</div>
+                <div style="font-size:13px;color:#777;margin-top:4px">${fmtKcDph(Number(p0.cena_s_dph) * qty0)}</div>
               </div>
             </div>
           </div>
