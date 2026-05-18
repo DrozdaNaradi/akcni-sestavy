@@ -163,7 +163,15 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .set-name{font-size:28px}
   .set-header{flex-direction:column;align-items:flex-start}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .price-card{grid-column:1/-1}
+  .price-card{grid-column:auto}
+  .price-card-top{padding:12px 12px 10px}
+  .price-card-bot{padding:6px 12px 14px}
+  .price-card .sum-label{font-size:10px}
+  .price-card .sum-sublabel{font-size:10px;margin-bottom:4px}
+  .price-card .sum-value{font-size:18px}
+  .price-card .sum-value.sale{font-size:15px}
+  .price-card .sum-vat{font-size:11px}
+  .pc-savings{padding-top:8px}
   .promo-layout{grid-template-columns:1fr}
   .promo-left{min-height:220px}
   .summary{grid-template-columns:1fr;gap:16px}
@@ -179,6 +187,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .sum-value{font-size:34px}
   .sum-value.list{font-size:20px}
   .topbar-inner{flex-wrap:wrap;gap:10px}
+  .price-card .sum-value{font-size:16px}
+  .price-card .sum-value.sale{font-size:13px}
 }
 
 /* PC-SAVINGS */
