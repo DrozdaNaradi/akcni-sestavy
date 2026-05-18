@@ -284,6 +284,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
         <input class="form-input" id="p-telefon" type="tel" placeholder="+420 123 456 789">
       </div>
       <div class="form-group">
+        <label class="form-label">Komentář</label>
+        <textarea class="form-input" id="p-komentar" rows="3" placeholder="Případné dotazy nebo poznámky…" style="resize:vertical;min-height:72px"></textarea>
+      </div>
+      <div class="form-group">
         <label class="form-label">Způsob převzetí</label>
         <div class="radio-group">
           <label class="radio-opt">
@@ -518,6 +522,7 @@ function openPoptavka(id, nazev) {
   document.getElementById('p-jmeno').value = '';
   document.getElementById('p-email').value = '';
   document.getElementById('p-telefon').value = '';
+  document.getElementById('p-komentar').value = '';
   document.querySelector('input[name="doruceni"][value="vyzvednutí"]').checked = true;
   document.getElementById('zaslat-note').classList.remove('show');
   document.getElementById('p-submit').disabled = false;
@@ -539,8 +544,9 @@ async function submitPoptavka() {
   const jmeno    = document.getElementById('p-jmeno').value.trim();
   const email    = document.getElementById('p-email').value.trim();
   const telefon  = document.getElementById('p-telefon').value.trim();
+  const komentar = document.getElementById('p-komentar').value.trim();
   const doruceni = document.querySelector('input[name="doruceni"]:checked').value;
-  if (!jmeno || !email || !telefon) { alert('Vyplňte prosím všechna povinná pole.'); return; }
+  if (!jmeno || !email || !telefon) { alert('Vyplňte prosím všechna povinná pole (jméno, e-mail, telefon).'); return; }
   const btn = document.getElementById('p-submit');
   btn.disabled = true;
   btn.textContent = 'Odesílám…';
@@ -549,6 +555,7 @@ async function submitPoptavka() {
       sestava_id: poptavkaSestavId,
       sestava_nazev: poptavkaSestavNazev,
       jmeno, email, telefon,
+      komentar: komentar || null,
       zpusob_doruceni: doruceni,
       status: 'nová'
     });

@@ -5,6 +5,7 @@ create table poptavky (
   jmeno text not null,
   email text not null,
   telefon text not null,
+  komentar text,
   zpusob_doruceni text not null default 'vyzvednutí',
   status text not null default 'nová',
   created_at timestamptz default now()

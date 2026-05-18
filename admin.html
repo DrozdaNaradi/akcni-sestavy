@@ -1352,6 +1352,7 @@ async function loadPoptavky() {
         <div class="poptavka-row"><strong>${esc(p.jmeno)}</strong></div>
         <div class="poptavka-row">${esc(p.email)} · ${esc(p.telefon)}</div>
         <div class="poptavka-row">Způsob: <strong>${esc(p.zpusob_doruceni)}</strong></div>
+        ${p.komentar ? `<div class="poptavka-row" style="margin-top:4px;font-style:italic;color:var(--text-2)">"${esc(p.komentar)}"</div>` : ''}
         <div class="poptavka-date">${ds}</div>
       </div>
       <div class="poptavka-actions">
