@@ -146,6 +146,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
   .preview-field .inp,.price-field .inp{width:100%}
 }
 
+/* POŘADÍ */
+.poradi-select{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);font-family:inherit;cursor:pointer;flex-shrink:0;appearance:auto}
+.poradi-wrap{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.poradi-label{font-size:11px;color:var(--text-3);white-space:nowrap}
+
 /* POPTÁVKY */
 .poptavka-item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;transition:opacity .2s;margin-bottom:8px}
 .poptavka-item.vyrizen{opacity:.4}
@@ -616,6 +621,7 @@ async function saveSettings() {
 async function getAll() {
   const { data } = await sb.from('sestavy')
     .select('*, produkty_sestavy(*)')
+    .order('poradi', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false });
   return data || [];
 }
@@ -736,6 +742,13 @@ function cardHTML(s) {
     </label>
     <div class="s-name">${s.nazev}</div>
     <div class="s-meta">${prods.length} pol. · ${fmt(celBez)} Kč</div>
+    <div class="poradi-wrap" onclick="ev(event)">
+      <span class="poradi-label">Pořadí:</span>
+      <select class="poradi-select" onchange="saveOrder('${s.id}', this.value)">
+        <option value="">—</option>
+        ${Array.from({length:15},(_,i)=>`<option value="${i+1}"${s.poradi===i+1?' selected':''} >${i+1}</option>`).join('')}
+      </select>
+    </div>
     <button class="btn btn-danger btn-sm" onclick="ev(event);delS('${s.id}')" title="Smazat sestavu" style="padding:5px 9px;flex-shrink:0">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
     </button>
@@ -1330,6 +1343,13 @@ async function uploadSlevaImg(sid, input) {
       if (placeholder) placeholder.outerHTML = `<img src="${publicUrl}" style="width:100%;max-width:260px;height:auto;border-radius:6px;aspect-ratio:3/2;object-fit:cover">`;
     }
   }
+}
+
+// ── POŘADÍ ───────────────────────────────────
+async function saveOrder(id, val) {
+  const poradi = val === '' ? null : parseInt(val);
+  await sb.from('sestavy').update({ poradi }).eq('id', id);
+  await refresh();
 }
 
 // ── POPTÁVKY ─────────────────────────────────
