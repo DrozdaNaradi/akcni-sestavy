@@ -450,7 +450,7 @@ async function load() {
         <div class="promo-layout">
           <div class="promo-left" style="position:relative" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
             <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
-            ${qty > 1 ? `<span style="position:absolute;top:12px;right:12px;background:#DB011C;color:#fff;font-size:14px;font-weight:800;border-radius:7px;padding:4px 10px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
+            ${qty > 1 ? `<span style="position:absolute;top:12px;right:12px;background:#DB011C;color:#fff;font-size:17px;font-weight:800;border-radius:7px;padding:5px 12px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
           </div>
           <div class="promo-right">
             <div class="promo-banner">${bannerImg}</div>
@@ -500,7 +500,7 @@ async function load() {
         <div class="card">
           <div class="card-img" style="position:relative" onclick="openDetail('${esc(p.artiklove_cislo)}','${esc(p.foto_url)}','${esc(p.nazev)}')">
             <img src="${esc(p.foto_url)}" alt="${esc(p.nazev)}" onerror="this.parentElement.style.opacity='.2'">
-            ${qty > 1 ? `<span style="position:absolute;top:8px;right:8px;background:#DB011C;color:#fff;font-size:12px;font-weight:800;border-radius:6px;padding:3px 7px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
+            ${qty > 1 ? `<span style="position:absolute;top:8px;right:8px;background:#DB011C;color:#fff;font-size:14px;font-weight:800;border-radius:6px;padding:4px 9px;line-height:1;letter-spacing:-.01em">${qty}×</span>` : ''}
           </div>
           <div class="card-meta">
             <span class="sku">${esc(p.artiklove_cislo)}</span>
