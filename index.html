@@ -181,6 +181,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .page-footer{padding:24px}
 }
 @media(max-width:540px){
+  .summary .save-pct{font-size:15px!important;padding:0 12px!important}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hero h1{font-size:40px}
   .set-name{font-size:24px}
@@ -435,8 +436,8 @@ async function load() {
         <div class="sum-col right">
           <div class="sum-label">Akční cena</div>
           <div class="sum-sublabel">Cena bez DPH 21 %</div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            ${pct > 0 ? `<div class="save-pct">−${pct} %</div>` : ''}
+          <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap">
+            ${pct > 0 ? `<div class="save-pct" style="display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:20px;padding:0 16px">−${pct} %</div>` : ''}
             <div class="sum-value sale">${fmtKc(akcni)}</div>
           </div>
           <div class="sum-vat">${fmtKcDph(akcniS)}</div>
