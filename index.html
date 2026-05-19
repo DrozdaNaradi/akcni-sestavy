@@ -463,9 +463,20 @@ async function load() {
               <div class="card-body">
                 <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
                 <div class="price-row">
-                  <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
-                  <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
+                  <div class="price-label">Ceníková cena</div>
+                  <div class="price-main" style="text-decoration:line-through;opacity:.5">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+                  <div class="price-vat" style="text-decoration:line-through;opacity:.4">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
                 </div>
+                ${akcni > 0 ? `<div class="price-row" style="margin-top:10px">
+                  <div class="price-label">Akční cena</div>
+                  <div class="pc-action-row" style="justify-content:flex-start;margin-top:4px">
+                    <div class="save-pct">−${pct} %</div>
+                    <div>
+                      <div class="price-main" style="color:#DB011C">${fmtKc(akcni * qty)}</div>
+                      <div class="price-vat">${fmtKcDph(akcniS * qty)}</div>
+                    </div>
+                  </div>
+                </div>` : ''}
               </div>
             </div>
           </div>
