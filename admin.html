@@ -293,7 +293,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 
     <div class="page-header">
       <h1 class="page-title">Akční sestavy</h1>
-      <button class="btn btn-primary" onclick="novaSestava()">+ Nová sestava</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="renumberAll()" title="Přečísluje všechny sestavy od 1 podle aktuálního pořadí">↕ Přečíslovat</button>
+        <button class="btn btn-primary" onclick="novaSestava()">+ Nová sestava</button>
+      </div>
     </div>
     <div id="list"><div class="loading">Načítání…</div></div>
   </main>
@@ -628,10 +631,26 @@ async function getAll() {
 async function refresh() { allSestavy = await getAll(); render(allSestavy); }
 
 async function novaSestava() {
+  const maxPoradi = allSestavy.reduce((m, s) => Math.max(m, s.poradi || 0), 0);
   const { data } = await sb.from('sestavy')
-    .insert({ nazev: 'Nová sestava', aktivni: true, akcni_cena: 0 })
+    .insert({ nazev: 'Nová sestava', aktivni: true, akcni_cena: 0, poradi: maxPoradi + 1 })
     .select().single();
   if (data) { openId = data.id; await refresh(); }
+}
+
+async function renumberAll() {
+  if (!confirm('Přečíslovat všechny sestavy od 1 podle aktuálního pořadí?')) return;
+  const sorted = [...allSestavy].sort((a, b) => {
+    if (a.poradi && b.poradi) return a.poradi - b.poradi;
+    if (a.poradi) return -1;
+    if (b.poradi) return 1;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
+  for (let i = 0; i < sorted.length; i++) {
+    await sb.from('sestavy').update({ poradi: i + 1 }).eq('id', sorted[i].id);
+  }
+  await refresh();
+  alert('Hotovo! Sestavy přečíslovány 1–' + sorted.length);
 }
 
 async function delSestava(id) {
