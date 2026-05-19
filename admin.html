@@ -767,7 +767,7 @@ function cardHTML(s) {
       <span class="poradi-label">Pořadí:</span>
       <select class="poradi-select" onchange="saveOrder('${s.id}', this.value)">
         <option value="">—</option>
-        ${Array.from({length:15},(_,i)=>`<option value="${i+1}"${Number(s.poradi)===i+1?' selected':''} >${i+1}</option>`).join('')}
+        ${Array.from({length:99},(_,i)=>`<option value="${i+1}"${Number(s.poradi)===i+1?' selected':''} >${i+1}</option>`).join('')}
       </select>
     </div>
     <button class="btn btn-danger btn-sm" onclick="ev(event);delS('${s.id}')" title="Smazat sestavu" style="padding:5px 9px;flex-shrink:0">
