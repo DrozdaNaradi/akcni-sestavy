@@ -435,7 +435,10 @@ async function load() {
         <div class="sum-col right">
           <div class="sum-label">Akční cena</div>
           <div class="sum-sublabel">Cena bez DPH 21 %</div>
-          <div class="sum-value sale">${fmtKc(akcni)}</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            ${pct > 0 ? `<div class="save-pct">−${pct} %</div>` : ''}
+            <div class="sum-value sale">${fmtKc(akcni)}</div>
+          </div>
           <div class="sum-vat">${fmtKcDph(akcniS)}</div>
         </div>
       </footer>`;
@@ -467,7 +470,6 @@ async function load() {
                   <div class="price-main" style="text-decoration:line-through;opacity:.5">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
                   <div class="price-vat" style="text-decoration:line-through;opacity:.4">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
                 </div>
-                ${akcni > 0 && pct > 0 ? `<div style="margin-top:8px"><div class="save-pct" style="display:inline-flex">−${pct} %</div></div>` : ''}
               </div>
             </div>
           </div>
