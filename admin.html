@@ -304,6 +304,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 
 <script>
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sestavaCislo(id){ const h=parseInt((id||'').replace(/-/g,'').substring(0,6),16)||0; return 'MWK'+(h%900+100); }
 
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
@@ -761,7 +762,7 @@ function cardHTML(s) {
       <input type="checkbox" ${s.aktivni?'checked':''} onchange="saveField('${s.id}','aktivni',this.checked)">
       <div class="t-track"><div class="t-thumb"></div></div>
     </label>
-    <div class="s-name">${s.nazev}</div>
+    <div class="s-name">${s.nazev} <span style="font-size:11px;font-weight:600;color:var(--text-4);margin-left:4px">${sestavaCislo(s.id)}</span></div>
     <div class="s-meta">${prods.length} pol. · ${fmt(celBez)} Kč</div>
     <div class="poradi-wrap" onclick="ev(event)">
       <span class="poradi-label">Pořadí:</span>
