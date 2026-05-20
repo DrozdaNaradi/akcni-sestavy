@@ -57,10 +57,13 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .theme-btn:hover{border-color:var(--text-4)}
 
 /* HERO */
-.hero{max-width:1280px;margin:0 auto;padding:36px 60px 28px}
+.hero{max-width:1280px;margin:0 auto;padding:36px 60px 28px;display:flex;align-items:center;justify-content:space-between;gap:40px}
+.hero-text{flex:1;min-width:0}
 .eyebrow{color:var(--red);font-size:15px;font-weight:600;letter-spacing:.01em;margin-bottom:10px}
 .hero h1{font-size:58px;line-height:.95;font-weight:700;letter-spacing:-.04em;margin:0 0 12px;color:var(--text)}
 .hero p{font-size:15px;color:var(--text-3);max-width:560px;line-height:1.45;margin:0}
+.hero-img-wrap{flex-shrink:0;display:none}
+.hero-img-wrap img{width:320px;height:auto;object-fit:contain;display:block}
 
 /* SETS */
 .sets{max-width:1280px;margin:0 auto;padding:12px 60px 48px;display:flex;flex-direction:column;gap:32px}
@@ -156,7 +159,8 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 /* RESPONSIVE */
 @media(max-width:900px){
   .topbar-inner{padding:20px 24px}
-  .hero{padding:36px 24px 24px}
+  .hero{padding:36px 24px 24px;flex-direction:column;align-items:flex-start}
+  .hero-img-wrap img{width:220px}
   .hero h1{font-size:48px}
   .sets{padding:12px 16px 48px;gap:24px}
   .set{padding:20px;border-radius:13px}
@@ -183,6 +187,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 @media(max-width:540px){
   .summary .save-pct{font-size:15px!important;padding:0 12px!important}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero-img-wrap img{width:160px}
   .hero h1{font-size:40px}
   .set-name{font-size:24px}
   .sum-value{font-size:34px}
@@ -268,9 +273,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 </header>
 
 <section class="hero">
-  <div class="eyebrow" id="pg-eyebrow">Milwaukee Tool</div>
-  <h1 id="pg-h1">Akční sestavy</h1>
-  <p id="pg-subtitle">Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
+  <div class="hero-text">
+    <div class="eyebrow" id="pg-eyebrow">Milwaukee Tool</div>
+    <h1 id="pg-h1">Akční sestavy</h1>
+    <p id="pg-subtitle">Výhodné sady nářadí za speciální ceny. Platí jen po omezenou dobu.</p>
+  </div>
+  <div class="hero-img-wrap" id="hero-img-wrap">
+    <img id="hero-img" src="" alt="Hero obrázek">
+  </div>
 </section>
 
 <main class="sets" id="sestavy">
@@ -393,6 +403,12 @@ async function loadSettings() {
     set('pg-eyebrow', data.eyebrow);
     set('pg-h1', data.h1);
     set('pg-subtitle', data.subtitle);
+    if (data.hero_image_url) {
+      const imgEl = document.getElementById('hero-img');
+      const wrapEl = document.getElementById('hero-img-wrap');
+      if (imgEl) imgEl.src = data.hero_image_url;
+      if (wrapEl) wrapEl.style.display = 'block';
+    }
   } catch(e) { /* keep defaults */ }
 }
 
