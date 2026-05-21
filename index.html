@@ -445,7 +445,7 @@ async function load() {
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
           <span style="font-size:12px;font-weight:700;color:#555;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
-          <button class="btn-zajem btn-zajem-header" onclick="openPoptavka('${s.id}','${esc(s.nazev)}','${cislo}')">Mám zájem o sestavu</button>
+          <button class="btn-zajem btn-zajem-header" onclick="openPoptavka('${s.id}','${esc(s.nazev)}','${cislo}')" style="display:inline-flex;align-items:center;gap:7px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>Mám zájem o sestavu</button>
         </div>
       </header>`;
 
