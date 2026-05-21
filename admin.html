@@ -2099,6 +2099,7 @@ async function loadPoptavky() {
     const d = new Date(p.created_at);
     const ds = d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
     const vyrizen = p.status === 'vyřízeno';
+    const doruceniLabel = p.zpusob_doruceni === 'vyzvednutí' ? 'Vyzvednu osobně' : p.zpusob_doruceni === 'zaslání' ? 'Zaslat' : esc(p.zpusob_doruceni||'');
     const sestava = allSestavy.find(s => s.id === p.sestava_id);
     const cislo = sestava ? sestavaCislo(sestava.id) : '';
     const fotky = sestava ? (sestava.produkty_sestavy || []).slice(0,5).map(pr =>
@@ -2114,7 +2115,7 @@ async function loadPoptavky() {
         ${fotky ? `<div style="display:flex;gap:5px;margin:6px 0 4px;flex-wrap:wrap">${fotky}</div>` : ''}
         <div class="poptavka-row"><strong>${esc(p.jmeno)}</strong></div>
         <div class="poptavka-row">${esc(p.email)} · ${esc(p.telefon)}</div>
-        <div class="poptavka-row">Způsob: <strong>${esc(p.zpusob_doruceni)}</strong></div>
+        <div class="poptavka-row">Způsob: <strong style="color:var(--green)">${doruceniLabel}</strong></div>
         ${p.komentar ? `<div class="poptavka-row" style="margin-top:4px;font-style:italic;color:var(--text-2)">"${esc(p.komentar)}"</div>` : ''}
         <div class="poptavka-date">${ds}</div>
       </div>
