@@ -851,7 +851,7 @@ function cardHTML(s) {
       <input type="checkbox" ${s.aktivni?'checked':''} onchange="saveField('${s.id}','aktivni',this.checked)">
       <div class="t-track"><div class="t-thumb"></div></div>
     </label>
-    <div class="s-name">${s.nazev} <span style="font-size:11px;font-weight:600;color:var(--text-4);margin-left:4px">${sestavaCislo(s.id)}</span></div>
+    <div class="s-name">${s.nazev} <span style="font-size:11px;font-weight:600;color:var(--red);margin-left:4px">${sestavaCislo(s.id)}</span></div>
     <div class="s-meta">${prods.length} pol. · ${fmt(celBez)} Kč</div>
     <div class="poradi-wrap" onclick="ev(event)">
       <span class="poradi-label">Pořadí:</span>
@@ -1211,7 +1211,7 @@ async function exportSet(id) {
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-          <span style="font-size:14px;font-weight:700;color:#000000;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
+          <span style="font-size:14px;font-weight:700;color:var(--red);letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
           ${pct > 0 ? `<div class="save-pct">−${pct}&nbsp;%</div>` : ''}
         </div>
       </header>`;
@@ -1566,7 +1566,7 @@ async function downloadAllPngsZip() {
           <header class="set-header">
             <h2 class="set-name">${esc(s.nazev)}</h2>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-              <span style="font-size:14px;font-weight:700;color:#000000;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
+              <span style="font-size:14px;font-weight:700;color:var(--red);letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
               ${pct > 0 ? `<div class="save-pct">−${pct}&nbsp;%</div>` : ''}
             </div>
           </header>`;
@@ -1800,7 +1800,7 @@ async function renderSetCanvas(s, imgMap) {
       <header class="set-header">
         <h2 class="set-name">${esc(s.nazev)}</h2>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-          <span style="font-size:14px;font-weight:700;color:#000000;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
+          <span style="font-size:14px;font-weight:700;color:var(--red);letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
           ${pct > 0 ? `<div class="save-pct">−${pct}&nbsp;%</div>` : ''}
         </div>
       </header>`;
@@ -2110,7 +2110,7 @@ async function loadPoptavky() {
       <div class="poptavka-info">
         <div class="poptavka-nazev" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           ${esc(p.sestava_nazev || '—')}
-          ${cislo ? `<span style="font-size:11px;font-weight:700;color:var(--text-4);letter-spacing:.04em">${esc(cislo)}</span>` : ''}
+          ${cislo ? `<span style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:.04em">${esc(cislo)}</span>` : ''}
         </div>
         ${fotky ? `<div style="display:flex;gap:5px;margin:6px 0 4px;flex-wrap:wrap">${fotky}</div>` : ''}
         <div class="poptavka-row"><strong>${esc(p.jmeno)}</strong></div>
