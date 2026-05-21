@@ -2099,10 +2099,19 @@ async function loadPoptavky() {
     const d = new Date(p.created_at);
     const ds = d.toLocaleDateString('cs-CZ') + ' ' + d.toLocaleTimeString('cs-CZ', {hour:'2-digit', minute:'2-digit'});
     const vyrizen = p.status === 'vyřízeno';
+    const sestava = allSestavy.find(s => s.id === p.sestava_id);
+    const cislo = sestava ? sestavaCislo(sestava.id) : '';
+    const fotky = sestava ? (sestava.produkty_sestavy || []).slice(0,5).map(pr =>
+      pr.foto_url ? `<img src="${esc(pr.foto_url)}" style="width:36px;height:36px;object-fit:contain;border-radius:6px;background:#f5f5f5;border:1px solid var(--line);flex-shrink:0" onerror="this.style.display='none'">` : ''
+    ).join('') : '';
     return `<div class="poptavka-item${vyrizen ? ' vyrizen' : ''}" id="popt-${p.id}">
       <div class="poptavka-badge ${vyrizen ? 'vyrizen' : 'nova'}">${vyrizen ? 'Vyřízeno' : 'Nová'}</div>
       <div class="poptavka-info">
-        <div class="poptavka-nazev">${esc(p.sestava_nazev || '—')}</div>
+        <div class="poptavka-nazev" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          ${esc(p.sestava_nazev || '—')}
+          ${cislo ? `<span style="font-size:11px;font-weight:700;color:var(--text-4);letter-spacing:.04em">${esc(cislo)}</span>` : ''}
+        </div>
+        ${fotky ? `<div style="display:flex;gap:5px;margin:6px 0 4px;flex-wrap:wrap">${fotky}</div>` : ''}
         <div class="poptavka-row"><strong>${esc(p.jmeno)}</strong></div>
         <div class="poptavka-row">${esc(p.email)} · ${esc(p.telefon)}</div>
         <div class="poptavka-row">Způsob: <strong>${esc(p.zpusob_doruceni)}</strong></div>
