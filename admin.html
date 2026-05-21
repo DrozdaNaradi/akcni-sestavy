@@ -1414,62 +1414,41 @@ function printProgress(label, sub) {
 async function doPrintAll(fmt) {
   const active = allSestavy.filter(s => s.aktivni && (s.produkty_sestavy||[]).length > 0);
   printProgress('Načítám obrázky…', `0 / ${active.length} sestav`);
-
-  // Prefetch všechny obrázky jako base64
   const imgMap = {};
   for (let i = 0; i < active.length; i++) {
-    const s = active[i];
     printProgress('Načítám obrázky…', `${i+1} / ${active.length} sestav`);
-    const prods = (s.produkty_sestavy || []);
-    await Promise.all(prods.map(async p => {
+    const s = active[i];
+    await Promise.all((s.produkty_sestavy||[]).map(async p => {
       if (p.foto_url && !imgMap[p.foto_url]) imgMap[p.foto_url] = await imgToDataUrl(p.foto_url);
     }));
     if (s.jedan_artikl && s.sleva_obrazek_url && !imgMap['__sleva__'+s.id])
       imgMap['__sleva__'+s.id] = await imgToDataUrl(s.sleva_obrazek_url);
   }
-
-  // Rozděl: regular = max 6/stránku (3×2), promo = max 4/stránku (2×2)
-  const regular = active.filter(s => !s.jedan_artikl);
-  const promo   = active.filter(s =>  s.jedan_artikl);
-  const pages = [];
-  for (let i = 0; i < regular.length; i += 6) pages.push({ sets: regular.slice(i,i+6), cols: 3 });
-  for (let i = 0; i < promo.length;   i += 4) pages.push({ sets: promo.slice(i,i+4),   cols: 2 });
-
-  printProgress('Renderuji stránky…', `0 / ${pages.length}`);
   await document.fonts.ready;
-
-  const canvases = [];
-  for (let pi = 0; pi < pages.length; pi++) {
-    printProgress('Renderuji stránky…', `${pi+1} / ${pages.length}`);
-    const { sets, cols } = pages[pi];
-    const pageDiv = buildPrintPage(sets, cols, imgMap);
-    document.body.appendChild(pageDiv);
-    await new Promise(r => setTimeout(r, 60));
-    try {
-      const canvas = await html2canvas(pageDiv, {
-        useCORS: false, scale: 2, backgroundColor: '#f5f5f7',
-        logging: false, imageTimeout: 0, width: 794, height: 1123
-      });
-      canvases.push(canvas);
-    } finally {
-      document.body.removeChild(pageDiv);
-    }
+  const setCanvases = [];
+  for (let i = 0; i < active.length; i++) {
+    printProgress('Renderuji sestavy…', `${i+1} / ${active.length}`);
+    setCanvases.push(await renderSetCanvas(active[i], imgMap));
   }
-
+  const pageCanvases = [];
+  for (let i = 0; i < setCanvases.length; i += 6) {
+    printProgress('Skládám stránky…', `Stránka ${Math.floor(i/6)+1} / ${Math.ceil(setCanvases.length/6)}`);
+    pageCanvases.push(buildA4Canvas(setCanvases.slice(i, i+6)));
+  }
   printProgress(fmt === 'pdf' ? 'Generuji PDF…' : 'Baluji ZIP…', '');
   try {
     if (fmt === 'pdf') {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-      canvases.forEach((c, i) => {
+      pageCanvases.forEach((c, i) => {
         if (i > 0) pdf.addPage();
         pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
       });
       pdf.save('akcni-sestavy.pdf');
     } else {
       const zip = new JSZip();
-      for (let i = 0; i < canvases.length; i++) {
-        const blob = await new Promise(r => canvases[i].toBlob(r, 'image/png'));
+      for (let i = 0; i < pageCanvases.length; i++) {
+        const blob = await new Promise(r => pageCanvases[i].toBlob(r, 'image/png'));
         zip.file(`stranka-${String(i+1).padStart(2,'0')}.png`, blob);
       }
       const zipBlob = await zip.generateAsync({ type:'blob' });
@@ -1486,137 +1465,263 @@ async function doPrintAll(fmt) {
   }
 }
 
-function buildPrintPage(sets, cols, imgMap) {
-  // A4 = 794×1123px, padding 18px, gap 10px
-  const PAD = 18, GAP = 10;
-  const W = 794, H = 1123;
-  const cardW = Math.floor((W - PAD*2 - GAP*(cols-1)) / cols);
-  const rows = Math.ceil(sets.length / cols);
-  const cardH = Math.floor((H - PAD*2 - GAP*(rows-1)) / rows);
+async function renderSetCanvas(s, imgMap) {
+  function fmtKc(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč'; }
+  function fmtKcDph(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0}) + ',- Kč s DPH'; }
 
-  const fmtN = n => Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:0});
-  const fmtKc = n => fmtN(n) + ',- Kč';
-  const fmtKcDph = n => fmtN(n) + ',- Kč s DPH';
+  const prods  = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+  const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph) * (p.pocet_kusu || 1), 0);
+  const celS   = prods.reduce((a,p) => a + Number(p.cena_s_dph)   * (p.pocet_kusu || 1), 0);
+  const akcni  = Number(s.akcni_cena) || 0;
+  const akcniS = Math.round(akcni * 1.21);
+  const slevaBez = celBez - akcni;
+  const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
 
-  const cardsHtml = sets.map(s => {
-    const prods = (s.produkty_sestavy||[]).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-    const celBez = prods.reduce((a,p)=>a+Number(p.cena_bez_dph)*(p.pocet_kusu||1),0);
-    const celS   = prods.reduce((a,p)=>a+Number(p.cena_s_dph)*(p.pocet_kusu||1),0);
-    const akcni  = Number(s.akcni_cena)||0;
-    const akcniS = Math.round(akcni*1.21);
-    const slevaBez = celBez - akcni;
-    const pct = celBez>0 ? Math.round(slevaBez/celBez*100) : 0;
+  const imgDims = {};
+  await Promise.all(Object.keys(imgMap).map(url => new Promise(res => {
+    const src = imgMap[url];
+    if (!src) { res(); return; }
+    const img = new Image();
+    img.onload = () => { imgDims[url] = { w: img.naturalWidth, h: img.naturalHeight }; res(); };
+    img.onerror = () => { imgDims[url] = { w: 200, h: 200 }; res(); };
+    img.src = src;
+  })));
 
-    if (s.jedan_artikl && prods.length > 0) {
-      // PROMO karta (2-col, wider)
-      const p0 = prods[0];
-      const qty0 = p0.pocet_kusu||1;
-      const src0 = imgMap[p0.foto_url]||'';
-      const slevaSrc = imgMap['__sleva__'+s.id]||'';
-      const imgArea = cardW * 0.44;
-      return `<div style="width:${cardW}px;height:${cardH}px;background:#c0c0c0;border:1px solid #999;border-radius:8px;overflow:hidden;display:flex;flex-direction:column;font-family:'Inter Tight','Inter',sans-serif;-webkit-font-smoothing:antialiased;flex-shrink:0">
-        <!-- header -->
-        <div style="padding:7px 10px 6px;background:#b0b0b0;border-bottom:1px solid #999;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-shrink:0">
-          <div>
-            <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#444;margin-bottom:1px">Ceníková cena před slevou</div>
-            <div style="font-size:12px;font-weight:700;color:#666;text-decoration:line-through;text-decoration-color:#DB011C;font-variant-numeric:tabular-nums">${fmtKc(celBez)}</div>
-            <div style="font-size:9px;color:#888;font-variant-numeric:tabular-nums">${fmtKcDph(celS)}</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            ${pct>0?`<div style="background:#DB011C;color:#fff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:4px;margin-bottom:3px;display:inline-block">−${pct} %</div><br>`:''}
-            <div style="font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#444;margin-bottom:1px">Akční cena</div>
-            <div style="background:#FFD60A;color:#1a1a1a;font-size:14px;font-weight:800;padding:3px 8px;border-radius:4px;display:inline-block;font-variant-numeric:tabular-nums">${fmtKc(akcni)}</div>
-          </div>
-        </div>
-        <!-- body -->
-        <div style="flex:1;display:flex;min-height:0">
-          <!-- big photo -->
-          <div style="width:${imgArea}px;flex-shrink:0;background:#fff;display:flex;align-items:center;justify-content:center;padding:10px;border-right:1px solid #aaa">
-            ${src0?`<img src="${src0}" style="max-width:100%;max-height:${cardH-90}px;object-fit:contain;display:block">`:''}
-          </div>
-          <!-- right: banner + info -->
-          <div style="flex:1;display:flex;flex-direction:column;min-width:0">
-            ${slevaSrc?`<div style="flex-shrink:0;height:${Math.round((cardH-90)*0.35)}px;overflow:hidden"><img src="${slevaSrc}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`:`<div style="flex-shrink:0;height:${Math.round((cardH-90)*0.35)}px;background:#DB011C"></div>`}
-            <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:6px;overflow:hidden;background:#d8d8d8">
-              <div style="font-size:8.5px;color:#666;font-family:ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p0.artiklove_cislo)}</div>
-              <div style="font-size:11px;font-weight:700;line-height:1.3;color:#111;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical">${qty0>1?`${qty0}× `:''}${esc(p0.nazev)}</div>
-              <div style="border-top:1px solid #bbb;padding-top:6px">
-                <div style="font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#666;margin-bottom:1px">Ceníková cena</div>
-                <div style="font-size:13px;font-weight:700;color:#888;text-decoration:line-through;text-decoration-color:#DB011C;font-variant-numeric:tabular-nums">${fmtKc(Number(p0.cena_bez_dph)*qty0)}</div>
-                <div style="font-size:9px;color:#aaa;font-variant-numeric:tabular-nums">${fmtKcDph(Number(p0.cena_s_dph)*qty0)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- name strip bottom -->
-        <div style="background:#a8a8a8;border-top:1px solid #999;padding:4px 10px;flex-shrink:0">
-          <div style="font-size:8px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.nazev)}</div>
-        </div>
-      </div>`;
-    }
-
-    // REGULAR karta (3-col, narrow) — set name vertical na levé straně
-    const STRIP = 20;
-    const contentW = cardW - STRIP - 1;
-    const headerH = Math.min(100, Math.round(cardH * 0.2));
-    const prodAreaH = cardH - headerH - 1;
-    const showProds = prods.slice(0,3);
-    const prodH = Math.floor(prodAreaH / Math.max(showProds.length,1));
-    const imgSz = Math.min(prodH - 10, 52);
-
-    return `<div style="width:${cardW}px;height:${cardH}px;background:#c0c0c0;border:1px solid #999;border-radius:8px;overflow:hidden;display:flex;flex-direction:row;font-family:'Inter Tight','Inter',sans-serif;-webkit-font-smoothing:antialiased;flex-shrink:0">
-      <!-- vertical name strip -->
-      <div style="width:${STRIP}px;flex-shrink:0;background:#b0b0b0;border-right:1px solid #aaa;display:flex;align-items:center;justify-content:center;padding:6px 0">
-        <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#333;white-space:nowrap;overflow:hidden;max-height:${cardH-12}px">${esc(s.nazev)}</div>
+  const prodsHTML = prods.slice(0,3).map(p => {
+    const src = imgMap[p.foto_url] || '';
+    const dims = imgDims[p.foto_url] || { w: 200, h: 200 };
+    const maxPx = 200;
+    const ratio = src ? Math.min(maxPx / dims.w, maxPx / dims.h) : 1;
+    const dw = Math.round(dims.w * ratio);
+    const dh = Math.round(dims.h * ratio);
+    const imgEl = src ? `<img src="${src}" width="${dw}" height="${dh}" style="display:block">` : '';
+    const qty = p.pocet_kusu || 1;
+    return `
+    <div class="card">
+      <div class="card-img" style="display:flex;align-items:center;justify-content:center;background:#fff">${imgEl}</div>
+      <div class="card-meta">
+        <span class="sku">${esc(p.artiklove_cislo)}</span>
+        ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
       </div>
-      <!-- main content -->
-      <div style="flex:1;display:flex;flex-direction:column;min-width:0">
-        <!-- pricing header -->
-        <div style="height:${headerH}px;flex-shrink:0;padding:6px 8px;background:#b8b8b8;border-bottom:1px solid #aaa;display:flex;flex-direction:column;justify-content:space-between">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px">
-            <div style="min-width:0">
-              <div style="font-size:6.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#555;margin-bottom:1px">Ceníková cena před slevou</div>
-              <div style="font-size:11px;font-weight:700;color:#777;text-decoration:line-through;text-decoration-color:#DB011C;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtKc(celBez)}</div>
-              <div style="font-size:8px;color:#999;font-variant-numeric:tabular-nums">${fmtKcDph(celS)}</div>
-            </div>
-            ${pct>0?`<div style="background:#DB011C;color:#fff;font-size:10px;font-weight:800;padding:3px 6px;border-radius:4px;line-height:1;flex-shrink:0;white-space:nowrap">−${pct} %</div>`:''}
-          </div>
-          <div>
-            <div style="font-size:6.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#555;margin-bottom:1px">Akční cena sestavy</div>
-            <div style="display:flex;align-items:center;gap:4px">
-              <div style="background:#FFD60A;color:#1a1a1a;font-size:${Math.min(14,contentW/12)}px;font-weight:800;padding:2px 7px;border-radius:4px;display:inline-block;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtKc(akcni)}</div>
-              <div style="font-size:8px;color:#777;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtKcDph(akcniS)}</div>
-            </div>
-          </div>
-        </div>
-        <!-- product rows -->
-        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-          ${showProds.map((p,i) => {
-            const qty = p.pocet_kusu||1;
-            const src = imgMap[p.foto_url]||'';
-            return `<div style="height:${prodH}px;flex-shrink:0;display:flex;align-items:center;gap:6px;padding:4px 8px;${i<showProds.length-1?'border-bottom:1px solid #aaa;':''}background:${i%2===0?'#c8c8c8':'#c0c0c0'}">
-              ${src?`<img src="${src}" style="width:${imgSz}px;height:${imgSz}px;object-fit:contain;background:#fff;border-radius:4px;border:1px solid #ddd;flex-shrink:0">`:`<div style="width:${imgSz}px;height:${imgSz}px;background:#ddd;border-radius:4px;flex-shrink:0"></div>`}
-              <div style="flex:1;min-width:0;overflow:hidden">
-                <div style="font-size:7.5px;color:#666;font-family:ui-monospace,monospace;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.artiklove_cislo)}</div>
-                <div style="font-size:9px;font-weight:600;line-height:1.3;color:#1a1a1a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${qty>1?`${qty}× `:''} ${esc(p.nazev)}</div>
-              </div>
-              <div style="text-align:right;flex-shrink:0;min-width:0">
-                <div style="font-size:10px;font-weight:700;color:#111;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtN(Number(p.cena_bez_dph)*qty)} Kč</div>
-                <div style="font-size:7.5px;color:#777;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtN(Number(p.cena_s_dph)*qty)} s DPH</div>
-              </div>
-            </div>`;
-          }).join('')}
+      <div class="card-body">
+        <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
+        <div class="price-row">
+          <div class="price-label">Ceníková cena</div>
+          <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+          <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
         </div>
       </div>
     </div>`;
   }).join('');
 
-  const gridStyle = `display:grid;grid-template-columns:repeat(${cols},${cardW}px);gap:${GAP}px;width:${W-PAD*2}px`;
+  const cislo = sestavaCislo(s.id);
+  const setHeaderHTML = `
+      <header class="set-header">
+        <h2 class="set-name">${esc(s.nazev)}</h2>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+          <span style="font-size:12px;font-weight:700;color:#555555;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
+          ${pct > 0 ? `<div class="save-pct">−${pct}&nbsp;%</div>` : ''}
+        </div>
+      </header>`;
+
+  const summaryHTML = `
+      <footer class="summary">
+        <div class="sum-col">
+          <div class="sum-label">Ceníková cena</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value list">${fmtKc(celBez)}</div>
+          <div class="sum-vat">${fmtKcDph(celS)}</div>
+        </div>
+        <div class="sum-col right">
+          <div class="sum-label">Akční cena</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap">
+            ${pct > 0 ? `<div class="save-pct" style="display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:20px;padding:0 16px">−${pct} %</div>` : ''}
+            <div class="sum-value sale">${fmtKc(akcni)}</div>
+          </div>
+          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+        </div>
+      </footer>`;
+
+  let setHTML;
+  if (s.jedan_artikl && prods.length > 0) {
+    const p0 = prods[0];
+    const qty0 = p0.pocet_kusu || 1;
+    const src0 = imgMap[p0.foto_url] || '';
+    const dims0 = imgDims[p0.foto_url] || {w:200,h:200};
+    const maxBig = 460;
+    const ratioBig = src0 ? Math.min(maxBig/dims0.w, maxBig/dims0.h) : 1;
+    const bw = Math.round(dims0.w * ratioBig);
+    const bh = Math.round(dims0.h * ratioBig);
+    const bigImgEl = src0 ? `<img src="${src0}" width="${bw}" height="${bh}" style="display:block">` : '';
+    const slevaSrc = imgMap['__sleva__'+s.id] || '';
+    const bannerEl = slevaSrc ? `<img src="${slevaSrc}" style="width:100%;height:100%;object-fit:cover;display:block">` : '';
+    setHTML = `
+    <article class="set">
+      ${setHeaderHTML}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:280px">${bigImgEl}</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="border-radius:11px;overflow:hidden;background:#DB011C;aspect-ratio:3/2;flex-shrink:0">${bannerEl}</div>
+          <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column">
+            <div style="padding:10px 20px;border-bottom:1px solid #c8c8c8;display:flex;justify-content:space-between;align-items:center">
+              <span style="color:#777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em">${esc(p0.artiklove_cislo)}</span>
+              ${p0.odkaz_eshop ? '<span style="color:#DB011C;font-size:12px;font-weight:600">Detail ↗</span>' : ''}
+            </div>
+            <div style="padding:16px 20px 24px;flex:1;display:flex;flex-direction:column;gap:14px">
+              <h3 style="font-size:20px;font-weight:700;line-height:1.25;color:#111;flex:1;margin:0">${qty0 > 1 ? `<span style="color:#DB011C;font-weight:800">${qty0}×</span> ` : ''}${esc(p0.nazev)}</h3>
+              <div style="border-top:1px solid #c8c8c8;padding-top:10px">
+                <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#777;margin-bottom:3px">Ceníková cena</div>
+                <div style="font-size:32px;font-weight:700;color:#aaa;letter-spacing:-.02em;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px">${fmtKc(Number(p0.cena_bez_dph) * qty0)}</div>
+                <div style="font-size:13px;color:#aaa;margin-top:2px;text-decoration:line-through;text-decoration-color:#DB011C">${fmtKcDph(Number(p0.cena_s_dph) * qty0)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${summaryHTML}
+    </article>`;
+  } else {
+    const priceCardExport = `
+      <div class="price-card">
+        <div class="price-card-top">
+          <div class="sum-label">Ceníková cena / Cena před slevou</div>
+          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
+          <div class="sum-value list">${fmtKc(celBez)}</div>
+          <div class="sum-vat">${fmtKcDph(celS)}</div>
+          <div class="pc-savings">
+            <div class="pc-savings-label">Na sestavě ušetříte celkem</div>
+            <div class="pc-savings-value">${fmtKc(slevaBez)}</div>
+          </div>
+        </div>
+        <div class="price-card-bot">
+          <div class="pc-prices">
+            <div class="sum-vat">${fmtKcDph(akcniS)}</div>
+            <div class="sum-label" style="margin-top:6px">Akční cena sestavy</div>
+            <div class="sum-sublabel" style="margin-bottom:4px">Cena bez DPH 21&nbsp;%</div>
+            <div class="pc-action-row">
+              <div class="save-pct">−${pct}&nbsp;%</div>
+              <div class="sum-value sale">${fmtKc(akcni)}</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    setHTML = `
+    <article class="set">
+      ${setHeaderHTML}
+      <div class="grid">${prodsHTML}${priceCardExport}</div>
+    </article>`;
+  }
+
+  const css = `
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#f8f8f8;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    .set{background:rgba(0,0,0,.08);border:1px solid #c0c0c0;border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
+    .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #c0c0c0;gap:20px;flex-wrap:wrap}
+    .set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#111111}
+    .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:6px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
+    .card-img{background:#ffffff;aspect-ratio:1/1;margin:12px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #c8c8c8;gap:8px}
+    .sku{color:#777777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
+    .card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+    .prod-name{font-size:14px;font-weight:500;line-height:1.35;color:#333333;margin:0;flex:1}
+    .price-row{border-top:1px solid #c8c8c8;padding-top:10px;margin-top:auto}
+    .price-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#777777;margin-bottom:3px}
+    .price-main{font-size:20px;font-weight:700;color:#111111}
+    .price-vat{font-size:12px;color:#777777;margin-top:2px}
+    .summary{padding-top:18px;border-top:1px solid #c0c0c0;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start}
+    .sum-col{display:flex;flex-direction:column;min-width:0}
+    .sum-col.right{text-align:right;align-items:flex-end}
+    .sum-label{color:#333333;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:3px}
+    .sum-sublabel{color:#999999;font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:8px}
+    .sum-value{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:#111111}
+    .sum-value.list{color:#999999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
+    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:5px 13px;border-radius:7px}
+    .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
+    .price-card{background:#111111;border:1px solid #333333;border-radius:11px;display:flex;flex-direction:column;overflow:hidden}
+    .price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #333333;text-align:right}
+    .price-card-bot{padding:8px 18px 18px;flex:none;display:flex;flex-direction:column;text-align:right}
+    .price-card .sum-label{font-size:12px;color:#ffffff}
+    .price-card .sum-sublabel{font-size:12px;margin-bottom:6px;color:#888888}
+    .price-card .sum-vat{font-size:13px;margin-top:4px;margin-bottom:0;color:#888888}
+    .price-card .sum-value{font-size:26px;letter-spacing:-.02em;color:#ffffff}
+    .price-card .sum-value.list{color:#666666}
+    .price-card .sum-value.sale{font-size:22px;margin-top:2px;padding:5px 13px;border-radius:7px}
+    .price-card-bot .sum-label{color:#ffffff}
+    .pc-prices{margin-top:auto}
+    .pc-savings{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);text-align:right}
+    .pc-savings-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888888;margin-bottom:3px}
+    .pc-savings-value{font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+    .pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px}
+    .pc-action-row .save-pct{flex-shrink:0;font-size:14px;padding:8px 12px;border-radius:6px;line-height:1;display:flex;align-items:center}
+    .pc-action-row .sum-value.sale{flex-shrink:1;display:flex!important;align-items:center;margin:0!important;padding:8px 12px!important;border-radius:6px;font-size:22px}
+    .promo-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .promo-left{background:#ffffff;border:1px solid #c8c8c8;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:280px}
+    .promo-left img{max-width:100%;max-height:360px;object-fit:contain}
+    .promo-right{display:flex;flex-direction:column;gap:14px}
+    .promo-banner{border-radius:11px;overflow:hidden;background:#DB011C;aspect-ratio:16/7;flex-shrink:0}
+    .promo-banner img{width:100%;height:100%;object-fit:cover;display:block}
+    .promo-info{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column}
+    .promo-info .card-meta{padding:12px 20px}
+    .promo-info .card-body{padding:16px 20px 24px;flex:1;display:flex;flex-direction:column;gap:14px}
+    .promo-info .prod-name{font-size:20px;font-weight:700;line-height:1.25;color:#111111;flex:1}
+  `;
 
   const wrap = document.createElement('div');
-  wrap.style.cssText = `position:fixed;left:-9999px;top:0;width:${W}px;height:${H}px;background:#f5f5f7;padding:${PAD}px;box-sizing:border-box;z-index:-1;overflow:hidden`;
-  wrap.innerHTML = `<div style="${gridStyle}">${cardsHtml}</div>`;
-  return wrap;
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:660px;padding:20px;background:#f8f8f8;z-index:-1;';
+  const styleEl = document.createElement('style');
+  styleEl.textContent = css;
+  wrap.appendChild(styleEl);
+  const content = document.createElement('div');
+  content.innerHTML = setHTML;
+  wrap.appendChild(content);
+  document.body.appendChild(wrap);
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    return await html2canvas(wrap, {
+      useCORS: false, scale: 2, backgroundColor: '#f8f8f8',
+      logging: false, imageTimeout: 0
+    });
+  } finally {
+    document.body.removeChild(wrap);
+  }
+}
+
+function buildA4Canvas(setCanvases) {
+  const W = 1588, H = 2246, PAD = 36, GAP = 16, COLS = 3, ROWS = 2;
+  const slotW = Math.floor((W - PAD*2 - GAP*(COLS-1)) / COLS);
+  const slotH = Math.floor((H - PAD*2 - GAP*(ROWS-1)) / ROWS);
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#b8b8b8';
+  ctx.fillRect(0, 0, W, H);
+  setCanvases.forEach((c, i) => {
+    if (i >= COLS * ROWS) return;
+    const col = i % COLS;
+    const row = Math.floor(i / COLS);
+    const x = PAD + col * (slotW + GAP);
+    const y = PAD + row * (slotH + GAP);
+    drawRotated90CW(ctx, c, x, y, slotW, slotH);
+  });
+  return canvas;
+}
+
+function drawRotated90CW(ctx, img, x, y, slotW, slotH) {
+  // After 90° CW rotation: img.height becomes the slot width dimension, img.width becomes height
+  const scale = Math.min(slotW / img.height, slotH / img.width);
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+  const ox = x + (slotW - dh) / 2;
+  const oy = y + (slotH - dw) / 2;
+  ctx.save();
+  ctx.translate(ox + dh, oy);
+  ctx.rotate(Math.PI / 2);
+  ctx.drawImage(img, 0, 0, dw, dh);
+  ctx.restore();
 }
 
 // ── JEDEN ARTIKL ─────────────────────────────
