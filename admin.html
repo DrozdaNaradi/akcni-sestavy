@@ -1109,11 +1109,11 @@ function reopenCard(id) {
 }
 
 // ── EXPORT PNG ───────────────────────────────
-async function imgToDataUrl(url) {
+async function imgToDataUrl(url, _retry = 0) {
   // images.weserv.nl — image proxy s CORS (*), Milwaukee S3 nemá vlastní CORS
   const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(url.replace(/^https?:\/\//, '')) + '&q=100';
   try {
-    const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(12000) });
+    const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(18000) });
     if (!resp.ok) throw new Error('status ' + resp.status);
     const blob = await resp.blob();
     return await new Promise(res => {
@@ -1121,7 +1121,13 @@ async function imgToDataUrl(url) {
       r.onloadend = () => res(r.result);
       r.readAsDataURL(blob);
     });
-  } catch { return ''; }
+  } catch(e) {
+    if (_retry < 3) {
+      await new Promise(r => setTimeout(r, 800 * (_retry + 1)));
+      return imgToDataUrl(url, _retry + 1);
+    }
+    return '';
+  }
 }
 
 async function exportSet(id) {
@@ -1482,9 +1488,19 @@ async function downloadAllPngsZip() {
 
   try {
     const zip = new JSZip();
+    const globalImgCache = {};  // sdílená cache URL→dataUrl přes všechny sestavy
+
+    async function fetchCached(url) {
+      if (!url) return '';
+      if (globalImgCache[url] !== undefined) return globalImgCache[url];
+      const result = await imgToDataUrl(url);
+      globalImgCache[url] = result;
+      return result;
+    }
+
     for (let i = 0; i < active.length; i++) {
       const s = active[i];
-      if (btn) btn.textContent = `${i+1} / ${active.length}`;
+      if (btn) btn.textContent = `Načítám ${i+1} / ${active.length}`;
 
       const prods  = (s.produkty_sestavy || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
       const celBez = prods.reduce((a,p) => a + Number(p.cena_bez_dph) * (p.pocet_kusu || 1), 0);
@@ -1494,12 +1510,13 @@ async function downloadAllPngsZip() {
       const slevaBez = celBez - akcni;
       const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
 
+      // Sekvenční stahování — ne paralelní, aby weserv.nl nebyl přetížen
       const imgMap = {};
-      await Promise.all(prods.map(async p => {
-        if (p.foto_url) imgMap[p.foto_url] = await imgToDataUrl(p.foto_url);
-      }));
+      for (const p of prods) {
+        if (p.foto_url) imgMap[p.foto_url] = await fetchCached(p.foto_url);
+      }
       if (s.jedan_artikl && s.sleva_obrazek_url) {
-        imgMap['__sleva__'] = await imgToDataUrl(s.sleva_obrazek_url);
+        imgMap['__sleva__'] = await fetchCached(s.sleva_obrazek_url);
       }
       const imgDims = {};
       await Promise.all(Object.entries(imgMap).map(([url, src]) => {
