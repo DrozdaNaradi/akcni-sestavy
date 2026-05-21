@@ -1477,213 +1477,113 @@ async function renderSetCanvas(s, imgMap) {
   const slevaBez = celBez - akcni;
   const pct = celBez > 0 ? Math.round(slevaBez / celBez * 100) : 0;
 
-  const imgDims = {};
-  await Promise.all(Object.keys(imgMap).map(url => new Promise(res => {
-    const src = imgMap[url];
-    if (!src) { res(); return; }
-    const img = new Image();
-    img.onload = () => { imgDims[url] = { w: img.naturalWidth, h: img.naturalHeight }; res(); };
-    img.onerror = () => { imgDims[url] = { w: 200, h: 200 }; res(); };
-    img.src = src;
-  })));
-
-  const prodsHTML = prods.slice(0,3).map(p => {
+  // ── PORTRAIT CARD (247×539px nominal, scale 2 → 494×1078px canvas) ──
+  // Layout: narrow name strip LEFT | pricing summary TOP | product rows BELOW
+  const prodsRows = prods.slice(0,3).map((p,i) => {
     const src = imgMap[p.foto_url] || '';
-    const dims = imgDims[p.foto_url] || { w: 200, h: 200 };
-    const maxPx = 200;
-    const ratio = src ? Math.min(maxPx / dims.w, maxPx / dims.h) : 1;
-    const dw = Math.round(dims.w * ratio);
-    const dh = Math.round(dims.h * ratio);
-    const imgEl = src ? `<img src="${src}" width="${dw}" height="${dh}" style="display:block">` : '';
     const qty = p.pocet_kusu || 1;
-    return `
-    <div class="card">
-      <div class="card-img" style="display:flex;align-items:center;justify-content:center;background:#fff">${imgEl}</div>
-      <div class="card-meta">
-        <span class="sku">${esc(p.artiklove_cislo)}</span>
-        ${p.odkaz_eshop ? `<span class="detail-link">Detail ↗</span>` : ''}
-      </div>
-      <div class="card-body">
-        <h3 class="prod-name">${qty > 1 ? `<span style="color:#DB011C;font-weight:800">${qty}×</span> ` : ''}${esc(p.nazev)}</h3>
-        <div class="price-row">
-          <div class="price-label">Ceníková cena</div>
-          <div class="price-main">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
-          <div class="price-vat">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
-        </div>
+    return `<div class="pr${i % 2 === 1 ? ' pr-alt' : ''}">
+      <div class="pr-img">${src ? `<img src="${src}" style="max-width:100%;max-height:100%;object-fit:contain;display:block">` : ''}</div>
+      <div class="pr-info">
+        <div class="pr-sku">${esc(p.artiklove_cislo)}</div>
+        <div class="pr-name">${qty > 1 ? `<b style="color:#DB011C">${qty}×</b> ` : ''}${esc(p.nazev)}</div>
+        <div class="pr-cena">${fmtKc(Number(p.cena_bez_dph) * qty)}</div>
+        <div class="pr-dph">${fmtKcDph(Number(p.cena_s_dph) * qty)}</div>
       </div>
     </div>`;
   }).join('');
 
-  const cislo = sestavaCislo(s.id);
-  const setHeaderHTML = `
-      <header class="set-header">
-        <h2 class="set-name">${esc(s.nazev)}</h2>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-          <span style="font-size:12px;font-weight:700;color:#555555;letter-spacing:.04em;white-space:nowrap">Artikl ${cislo}</span>
-          ${pct > 0 ? `<div class="save-pct">−${pct}&nbsp;%</div>` : ''}
-        </div>
-      </header>`;
-
-  const summaryHTML = `
-      <footer class="summary">
-        <div class="sum-col">
-          <div class="sum-label">Ceníková cena</div>
-          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div class="sum-value list">${fmtKc(celBez)}</div>
-          <div class="sum-vat">${fmtKcDph(celS)}</div>
-        </div>
-        <div class="sum-col right">
-          <div class="sum-label">Akční cena</div>
-          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div style="display:flex;align-items:stretch;gap:10px;flex-wrap:wrap">
-            ${pct > 0 ? `<div class="save-pct" style="display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:20px;padding:0 16px">−${pct} %</div>` : ''}
-            <div class="sum-value sale">${fmtKc(akcni)}</div>
-          </div>
-          <div class="sum-vat">${fmtKcDph(akcniS)}</div>
-        </div>
-      </footer>`;
-
-  let setHTML;
+  let mainBody;
   if (s.jedan_artikl && prods.length > 0) {
     const p0 = prods[0];
     const qty0 = p0.pocet_kusu || 1;
     const src0 = imgMap[p0.foto_url] || '';
-    const dims0 = imgDims[p0.foto_url] || {w:200,h:200};
-    const maxBig = 460;
-    const ratioBig = src0 ? Math.min(maxBig/dims0.w, maxBig/dims0.h) : 1;
-    const bw = Math.round(dims0.w * ratioBig);
-    const bh = Math.round(dims0.h * ratioBig);
-    const bigImgEl = src0 ? `<img src="${src0}" width="${bw}" height="${bh}" style="display:block">` : '';
     const slevaSrc = imgMap['__sleva__'+s.id] || '';
-    const bannerEl = slevaSrc ? `<img src="${slevaSrc}" style="width:100%;height:100%;object-fit:cover;display:block">` : '';
-    setHTML = `
-    <article class="set">
-      ${setHeaderHTML}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:280px">${bigImgEl}</div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div style="border-radius:11px;overflow:hidden;background:#DB011C;aspect-ratio:3/2;flex-shrink:0">${bannerEl}</div>
-          <div style="background:#fff;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column">
-            <div style="padding:10px 20px;border-bottom:1px solid #c8c8c8;display:flex;justify-content:space-between;align-items:center">
-              <span style="color:#777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em">${esc(p0.artiklove_cislo)}</span>
-              ${p0.odkaz_eshop ? '<span style="color:#DB011C;font-size:12px;font-weight:600">Detail ↗</span>' : ''}
-            </div>
-            <div style="padding:16px 20px 24px;flex:1;display:flex;flex-direction:column;gap:14px">
-              <h3 style="font-size:20px;font-weight:700;line-height:1.25;color:#111;flex:1;margin:0">${qty0 > 1 ? `<span style="color:#DB011C;font-weight:800">${qty0}×</span> ` : ''}${esc(p0.nazev)}</h3>
-              <div style="border-top:1px solid #c8c8c8;padding-top:10px">
-                <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#777;margin-bottom:3px">Ceníková cena</div>
-                <div style="font-size:32px;font-weight:700;color:#aaa;letter-spacing:-.02em;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px">${fmtKc(Number(p0.cena_bez_dph) * qty0)}</div>
-                <div style="font-size:13px;color:#aaa;margin-top:2px;text-decoration:line-through;text-decoration-color:#DB011C">${fmtKcDph(Number(p0.cena_s_dph) * qty0)}</div>
-              </div>
-            </div>
-          </div>
+    mainBody = `<div class="promo-body">
+      <div class="promo-photo">${src0 ? `<img src="${src0}" style="max-width:100%;max-height:100%;object-fit:contain;display:block">` : ''}</div>
+      <div class="promo-side">
+        ${slevaSrc ? `<div class="promo-banner"><img src="${slevaSrc}" style="width:100%;height:100%;object-fit:cover;display:block"></div>` : `<div class="promo-banner"></div>`}
+        <div class="promo-info">
+          <div class="pr-sku">${esc(p0.artiklove_cislo)}</div>
+          <div class="pr-name" style="font-size:11px;margin-top:4px">${qty0 > 1 ? `<b style="color:#DB011C">${qty0}×</b> ` : ''}${esc(p0.nazev)}</div>
         </div>
       </div>
-      ${summaryHTML}
-    </article>`;
+    </div>`;
   } else {
-    const priceCardExport = `
-      <div class="price-card">
-        <div class="price-card-top">
-          <div class="sum-label">Ceníková cena / Cena před slevou</div>
-          <div class="sum-sublabel">Cena bez DPH 21&nbsp;%</div>
-          <div class="sum-value list">${fmtKc(celBez)}</div>
-          <div class="sum-vat">${fmtKcDph(celS)}</div>
-          <div class="pc-savings">
-            <div class="pc-savings-label">Na sestavě ušetříte celkem</div>
-            <div class="pc-savings-value">${fmtKc(slevaBez)}</div>
-          </div>
-        </div>
-        <div class="price-card-bot">
-          <div class="pc-prices">
-            <div class="sum-vat">${fmtKcDph(akcniS)}</div>
-            <div class="sum-label" style="margin-top:6px">Akční cena sestavy</div>
-            <div class="sum-sublabel" style="margin-bottom:4px">Cena bez DPH 21&nbsp;%</div>
-            <div class="pc-action-row">
-              <div class="save-pct">−${pct}&nbsp;%</div>
-              <div class="sum-value sale">${fmtKc(akcni)}</div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-    setHTML = `
-    <article class="set">
-      ${setHeaderHTML}
-      <div class="grid">${prodsHTML}${priceCardExport}</div>
-    </article>`;
+    mainBody = `<div class="prods">${prodsRows}</div>`;
   }
+
+  const html = `<div class="card">
+    <div class="strip"><span class="strip-txt">${esc(s.nazev)}</span></div>
+    <div class="main">
+      <div class="summ">
+        <div class="sc-l">
+          <div class="lbl">Ceníková cena / Cena před slevou</div>
+          <div class="sub">Cena bez DPH 21 %</div>
+          <div class="val crossed">${fmtKc(celBez)}</div>
+          <div class="vat">${fmtKcDph(celS)}</div>
+        </div>
+        <div class="sc-r">
+          ${pct > 0 ? `<div class="pct">−${pct}&nbsp;%</div>` : ''}
+          <div class="lbl">Akční cena sestavy</div>
+          <div class="sub">Cena bez DPH 21 %</div>
+          <div class="val sale">${fmtKc(akcni)}</div>
+          <div class="vat">${fmtKcDph(akcniS)}</div>
+        </div>
+      </div>
+      ${mainBody}
+    </div>
+  </div>`;
 
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#f8f8f8;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-    .set{background:rgba(0,0,0,.08);border:1px solid #c0c0c0;border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
-    .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #c0c0c0;gap:20px;flex-wrap:wrap}
-    .set-name{font-size:30px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#111111}
-    .save-pct{background:#DB011C;color:#fff;font-size:16px;font-weight:800;padding:8px 12px;border-radius:6px;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums}
-    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-    .card{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
-    .card-img{background:#ffffff;aspect-ratio:1/1;margin:12px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .card-meta{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid #c8c8c8;gap:8px}
-    .sku{color:#777777;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .detail-link{color:#DB011C;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
-    .card-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
-    .prod-name{font-size:14px;font-weight:500;line-height:1.35;color:#333333;margin:0;flex:1}
-    .price-row{border-top:1px solid #c8c8c8;padding-top:10px;margin-top:auto}
-    .price-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#777777;margin-bottom:3px}
-    .price-main{font-size:20px;font-weight:700;color:#111111}
-    .price-vat{font-size:12px;color:#777777;margin-top:2px}
-    .summary{padding-top:18px;border-top:1px solid #c0c0c0;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start}
-    .sum-col{display:flex;flex-direction:column;min-width:0}
-    .sum-col.right{text-align:right;align-items:flex-end}
-    .sum-label{color:#333333;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.2;margin-bottom:3px}
-    .sum-sublabel{color:#999999;font-size:11px;font-weight:700;letter-spacing:.02em;line-height:1.2;margin-bottom:8px}
-    .sum-value{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;margin:0;color:#111111}
-    .sum-value.list{color:#999999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:2px}
-    .sum-value.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:5px 13px;border-radius:7px}
-    .sum-vat{font-size:14px;color:#777777;font-weight:500;letter-spacing:.02em;margin-top:6px;line-height:1.2}
-    .price-card{background:#111111;border:1px solid #333333;border-radius:11px;display:flex;flex-direction:column;overflow:hidden}
-    .price-card-top{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column;border-bottom:1px solid #333333;text-align:right}
-    .price-card-bot{padding:8px 18px 18px;flex:none;display:flex;flex-direction:column;text-align:right}
-    .price-card .sum-label{font-size:12px;color:#ffffff}
-    .price-card .sum-sublabel{font-size:12px;margin-bottom:6px;color:#888888}
-    .price-card .sum-vat{font-size:13px;margin-top:4px;margin-bottom:0;color:#888888}
-    .price-card .sum-value{font-size:26px;letter-spacing:-.02em;color:#ffffff}
-    .price-card .sum-value.list{color:#666666}
-    .price-card .sum-value.sale{font-size:22px;margin-top:2px;padding:5px 13px;border-radius:7px}
-    .price-card-bot .sum-label{color:#ffffff}
-    .pc-prices{margin-top:auto}
-    .pc-savings{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);text-align:right}
-    .pc-savings-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888888;margin-bottom:3px}
-    .pc-savings-value{font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-    .pc-action-row{display:flex;align-items:stretch;gap:8px;justify-content:flex-end;margin-top:2px}
-    .pc-action-row .save-pct{flex-shrink:0;font-size:14px;padding:8px 12px;border-radius:6px;line-height:1;display:flex;align-items:center}
-    .pc-action-row .sum-value.sale{flex-shrink:1;display:flex!important;align-items:center;margin:0!important;padding:8px 12px!important;border-radius:6px;font-size:22px}
-    .promo-layout{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .promo-left{background:#ffffff;border:1px solid #c8c8c8;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:32px;min-height:280px}
-    .promo-left img{max-width:100%;max-height:360px;object-fit:contain}
-    .promo-right{display:flex;flex-direction:column;gap:14px}
-    .promo-banner{border-radius:11px;overflow:hidden;background:#DB011C;aspect-ratio:16/7;flex-shrink:0}
-    .promo-banner img{width:100%;height:100%;object-fit:cover;display:block}
-    .promo-info{background:#f7f7f7;border:1px solid #c8c8c8;border-radius:11px;overflow:hidden;flex:1;display:flex;flex-direction:column}
-    .promo-info .card-meta{padding:12px 20px}
-    .promo-info .card-body{padding:16px 20px 24px;flex:1;display:flex;flex-direction:column;gap:14px}
-    .promo-info .prod-name{font-size:20px;font-weight:700;line-height:1.25;color:#111111;flex:1}
+    body{background:#f8f8f8;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    .card{display:flex;flex-direction:row;background:rgba(0,0,0,.08);border:1px solid #c0c0c0;border-radius:10px;overflow:hidden;height:523px}
+    .strip{width:22px;flex-shrink:0;background:rgba(0,0,0,.14);border-right:1px solid #bbb;display:flex;align-items:center;justify-content:center;padding:6px 0}
+    .strip-txt{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#222;white-space:nowrap;overflow:hidden;max-height:510px}
+    .main{flex:1;display:flex;flex-direction:column;min-width:0}
+    .summ{display:flex;gap:8px;padding:9px 10px 8px;border-bottom:1px solid #c8c8c8;background:rgba(0,0,0,.04);flex-shrink:0}
+    .sc-l{flex:1;min-width:0}
+    .sc-r{text-align:right;flex-shrink:0}
+    .lbl{font-size:6.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#555;margin-bottom:2px;line-height:1.2}
+    .sub{font-size:6.5px;color:#999;margin-bottom:3px;line-height:1.2}
+    .val{font-size:15px;font-weight:700;letter-spacing:-.02em;color:#111;font-variant-numeric:tabular-nums;line-height:1}
+    .val.crossed{color:#999;text-decoration:line-through;text-decoration-color:#DB011C;text-decoration-thickness:1.5px}
+    .val.sale{color:#1a1a1a;background:#FFD60A;display:inline-block;padding:3px 8px;border-radius:5px;font-size:14px}
+    .vat{font-size:7.5px;color:#777;margin-top:2px}
+    .pct{background:#DB011C;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px}
+    .prods{flex:1;display:flex;flex-direction:column}
+    .pr{display:flex;align-items:center;gap:7px;padding:6px 8px;border-bottom:1px solid #e0e0e0;flex:1}
+    .pr-alt{background:rgba(0,0,0,.03)}
+    .pr:last-child{border-bottom:none}
+    .pr-img{width:50px;height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:5px;border:1px solid #e0e0e0;overflow:hidden;padding:3px}
+    .pr-info{flex:1;min-width:0}
+    .pr-sku{font-size:7.5px;color:#888;font-family:ui-monospace,monospace;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pr-name{font-size:9.5px;font-weight:600;line-height:1.3;color:#111;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin-bottom:3px}
+    .pr-cena{font-size:12px;font-weight:700;color:#111;font-variant-numeric:tabular-nums}
+    .pr-dph{font-size:7.5px;color:#777;margin-top:1px}
+    .promo-body{flex:1;display:flex;min-height:0}
+    .promo-photo{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;background:#fff;border-right:1px solid #e0e0e0}
+    .promo-photo img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+    .promo-side{flex:1;display:flex;flex-direction:column}
+    .promo-banner{height:120px;flex-shrink:0;background:#DB011C;overflow:hidden}
+    .promo-info{flex:1;padding:10px;display:flex;flex-direction:column;gap:4px}
   `;
 
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:660px;padding:20px;background:#f8f8f8;z-index:-1;';
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:247px;height:539px;padding:8px;background:#f8f8f8;z-index:-1;overflow:hidden';
   const styleEl = document.createElement('style');
   styleEl.textContent = css;
   wrap.appendChild(styleEl);
-  const content = document.createElement('div');
-  content.innerHTML = setHTML;
-  wrap.appendChild(content);
+  const cont = document.createElement('div');
+  cont.innerHTML = html;
+  wrap.appendChild(cont);
   document.body.appendChild(wrap);
   await new Promise(r => setTimeout(r, 30));
   try {
     return await html2canvas(wrap, {
       useCORS: false, scale: 2, backgroundColor: '#f8f8f8',
-      logging: false, imageTimeout: 0
+      logging: false, imageTimeout: 0, width: 247, height: 539
     });
   } finally {
     document.body.removeChild(wrap);
@@ -1705,23 +1605,10 @@ function buildA4Canvas(setCanvases) {
     const row = Math.floor(i / COLS);
     const x = PAD + col * (slotW + GAP);
     const y = PAD + row * (slotH + GAP);
-    drawRotated90CW(ctx, c, x, y, slotW, slotH);
+    const sc = Math.min(slotW / c.width, slotH / c.height);
+    ctx.drawImage(c, x, y, c.width * sc, c.height * sc);
   });
   return canvas;
-}
-
-function drawRotated90CW(ctx, img, x, y, slotW, slotH) {
-  // After 90° CW rotation: img.height becomes the slot width dimension, img.width becomes height
-  const scale = Math.min(slotW / img.height, slotH / img.width);
-  const dw = img.width * scale;
-  const dh = img.height * scale;
-  const ox = x + (slotW - dh) / 2;
-  const oy = y + (slotH - dw) / 2;
-  ctx.save();
-  ctx.translate(ox + dh, oy);
-  ctx.rotate(Math.PI / 2);
-  ctx.drawImage(img, 0, 0, dw, dh);
-  ctx.restore();
 }
 
 // ── JEDEN ARTIKL ─────────────────────────────
