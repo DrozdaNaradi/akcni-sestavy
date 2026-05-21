@@ -196,9 +196,15 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   .sum-value{font-size:34px}
   .sum-value.list{font-size:20px}
   .topbar-inner{flex-wrap:wrap;gap:10px}
-  .price-card .sum-value{font-size:16px}
-  .price-card .sum-value.sale{font-size:13px}
-  .pc-action-row .save-pct{font-size:11px;padding:6px 7px;border-radius:5px}
+  .price-card{grid-column:1 / -1;flex-direction:row;align-items:stretch}
+  .price-card-top{flex:1;text-align:left;border-bottom:none;border-right:1px solid rgba(255,255,255,.1);padding:14px}
+  .price-card-bot{flex:1;text-align:left;display:flex;flex-direction:column;justify-content:center;padding:14px}
+  .price-card .sum-value{font-size:18px}
+  .price-card .sum-value.list{font-size:16px}
+  .price-card .sum-value.sale{font-size:26px;padding:8px 14px!important;border-radius:8px}
+  .pc-savings{border-top:none;padding-top:4px}
+  .pc-action-row{justify-content:flex-start;margin-top:6px}
+  .pc-action-row .save-pct{font-size:14px;padding:8px 10px;border-radius:6px}
 }
 
 /* PC-SAVINGS */
