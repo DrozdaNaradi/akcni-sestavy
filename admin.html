@@ -353,7 +353,7 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
 
 <script>
 function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function sestavaCislo(id){ const h=parseInt((id||'').replace(/-/g,'').substring(0,6),16)||0; return 'MWK'+(h%900+100); }
+function sestavaCislo(id){ const h=parseInt((id||'').replace(/-/g,'').substring(0,6),16)||0; return 'MWK'+(h%90+10); }
 
 const SB_URL = 'https://dsskekmjtdfasppwwmtd.supabase.co';
 const SB_KEY = 'sb_publishable_FbEQYOP1kP0gS9dtWQJlZQ_ArFX9IpA';
