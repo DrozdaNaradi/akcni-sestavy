@@ -1298,7 +1298,7 @@ async function exportSet(id) {
   // Světlý motiv — stejné barvy jako index.html light mode
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#f8f8f8;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    body{background:#bababa;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
     .set{background:rgba(0,0,0,.08);border:1px solid #c0c0c0;border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
     .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #c0c0c0;gap:20px;flex-wrap:wrap}
     .set-name{font-size:24px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#111111}
@@ -1355,7 +1355,7 @@ async function exportSet(id) {
   `;
 
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:1200px;padding:40px;background:#f8f8f8;z-index:-1;';
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:1200px;padding:40px;background:#bababa;z-index:-1;';
 
   const styleEl = document.createElement('style');
   styleEl.textContent = css;
@@ -1372,7 +1372,7 @@ async function exportSet(id) {
     const canvas = await html2canvas(wrap, {
       useCORS: false,
       scale: 3,
-      backgroundColor: '#f8f8f8',
+      backgroundColor: '#bababa',
       logging: false,
       imageTimeout: 0
     });
@@ -1620,7 +1620,7 @@ async function renderSetCanvas(s, imgMap) {
 
   const css = `
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:#f8f8f8;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    body{background:#bababa;color:#111111;font-family:'Inter Tight','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
     .set{background:rgba(0,0,0,.08);border:1px solid #c0c0c0;border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
     .set-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid #c0c0c0;gap:20px;flex-wrap:wrap}
     .set-name{font-size:24px;font-weight:700;letter-spacing:-.03em;margin:0;line-height:1;color:#111111}
@@ -1667,7 +1667,7 @@ async function renderSetCanvas(s, imgMap) {
   `;
 
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:660px;padding:20px;background:#f8f8f8;z-index:-1;';
+  wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:660px;padding:20px;background:#bababa;z-index:-1;';
   const styleEl = document.createElement('style');
   styleEl.textContent = css;
   wrap.appendChild(styleEl);
@@ -1678,7 +1678,7 @@ async function renderSetCanvas(s, imgMap) {
   await new Promise(r => setTimeout(r, 40));
   try {
     return await html2canvas(wrap, {
-      useCORS: false, scale: 2, backgroundColor: '#f8f8f8',
+      useCORS: false, scale: 2, backgroundColor: '#bababa',
       logging: false, imageTimeout: 0
     });
   } finally {
