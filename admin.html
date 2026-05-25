@@ -623,7 +623,7 @@ async function init() {
   tryLoadNakupniCenyFromStorage();
   await loadSettingsAdmin();
   await loadKatalogMeta();
-  await refresh();
+  try { await refresh(); } catch(e) { console.error('Chyba načtení sestav:', e); }
 }
 
 // ── PAGE SETTINGS ─────────────────────────────
@@ -2090,6 +2090,7 @@ async function saveOrder(id, val) {
 async function loadPoptavky() {
   const el = document.getElementById('poptavky-list');
   if (!el) return;
+  if (!sb) { el.innerHTML = '<div class="poptavky-empty">Připojení k databázi selhalo — obnovte stránku.</div>'; return; }
   el.innerHTML = '<div class="loading">Načítání…</div>';
   try {
   const { data, error } = await sb.from('poptavky').select('*').order('created_at', { ascending: false });
@@ -2147,7 +2148,19 @@ async function smazatPoptavku(id) {
 // ── BOOT ─────────────────────────────────────
 if (sessionStorage.getItem('auth') === '1') {
   document.getElementById('app').style.display = 'block';
-  init().then(() => loadPoptavky());
+  // Poptávky se načtou vždy — i kdyby init() selhalo
+  init()
+    .then(() => loadPoptavky())
+    .catch(() => loadPoptavky());
+  // Realtime — nová poptávka se ukáže okamžitě bez mačkání Obnovit
+  setTimeout(() => {
+    if (!sb) return;
+    sb.channel('poptavky-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'poptavky' }, () => {
+        loadPoptavky();
+      })
+      .subscribe();
+  }, 3000); // počkej až bude sb inicializováno
 } else {
   document.getElementById('login').style.display = 'flex';
 }
