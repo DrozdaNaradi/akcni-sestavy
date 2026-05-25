@@ -2148,10 +2148,12 @@ async function smazatPoptavku(id) {
 // ── BOOT ─────────────────────────────────────
 if (sessionStorage.getItem('auth') === '1') {
   document.getElementById('app').style.display = 'block';
-  // Poptávky se načtou vždy — i kdyby init() selhalo
-  init()
-    .then(() => loadPoptavky())
-    .catch(() => loadPoptavky());
+  // sb je synchronní — nastavíme okamžitě, poptávky nečekají na init()
+  try { sb = supabase.createClient(SB_URL, SB_KEY); } catch(e) {}
+  loadPoptavky(); // spustí se ihned, nezávisle na init()
+  // init() načte sestavy, katalog atd. na pozadí
+  // po dokončení znovu načte poptávky (doplní fotky)
+  init().then(() => loadPoptavky()).catch(() => {});
   // Realtime — nová poptávka se ukáže okamžitě bez mačkání Obnovit
   setTimeout(() => {
     if (!sb) return;
@@ -2160,7 +2162,7 @@ if (sessionStorage.getItem('auth') === '1') {
         loadPoptavky();
       })
       .subscribe();
-  }, 3000); // počkej až bude sb inicializováno
+  }, 2000);
 } else {
   document.getElementById('login').style.display = 'flex';
 }
