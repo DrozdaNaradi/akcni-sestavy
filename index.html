@@ -617,6 +617,7 @@ document.getElementById('poptavka-modal').addEventListener('click', function(e) 
 });
 
 load();
+sb.from('page_visits').insert({ visited_at: new Date().toISOString() }).then(()=>{}).catch(()=>{});
 </script>
 </body>
 </html>
