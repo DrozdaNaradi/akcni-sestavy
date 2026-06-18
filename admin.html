@@ -2317,6 +2317,7 @@ async function saveVrtakyTexts() {
 
 // ── VRTÁKY ADMIN ─────────────────────────────
 let vrtakyKat = [];
+const vkOpen = new Set();   // id rozbalených kategorií (přežije překreslení)
 
 function toggleVrtaky() {
   const body = document.getElementById('vrtaky-body');
@@ -2359,8 +2360,8 @@ function renderVrtakyAdmin() {
       </tr>`).join('');
 
     return `
-    <div class="vk-card collapsed">
-      <div class="vk-cardhead" onclick="toggleVk(this)">
+    <div class="vk-card${vkOpen.has(k.id) ? '' : ' collapsed'}">
+      <div class="vk-cardhead" onclick="toggleVk('${k.id}', this)">
         ${k.foto_url ? `<img class="vk-cardhead-thumb" src="${esc(k.foto_url)}" onerror="this.style.display='none'">` : ''}
         <div class="vk-cardhead-title">${esc(k.nazev) || '(bez názvu)'}</div>
         <div class="vk-cardhead-count">${pol.length} art.${k.aktivni ? '' : ' · skrytá'}</div>
@@ -2409,7 +2410,10 @@ function renderVrtakyAdmin() {
   }).join('');
 }
 
-function toggleVk(headEl){ headEl.closest('.vk-card').classList.toggle('collapsed'); }
+function toggleVk(id, headEl){
+  const open = headEl.closest('.vk-card').classList.toggle('collapsed') === false;
+  if(open) vkOpen.add(id); else vkOpen.delete(id);
+}
 
 function recalcVk(id) {
   const cena = document.getElementById('vk-cena-' + id).value;
@@ -2420,8 +2424,9 @@ function recalcVk(id) {
 
 async function novaVrtakKategorie() {
   const maxP = vrtakyKat.reduce((m, k) => Math.max(m, k.poradi || 0), 0);
-  const { error } = await sb.from('vrtaky_kategorie').insert({ nazev: 'Nová kategorie', poradi: maxP + 1 });
+  const { data, error } = await sb.from('vrtaky_kategorie').insert({ nazev: 'Nová kategorie', poradi: maxP + 1 }).select().single();
   if (error) { alert('Chyba: ' + error.message); return; }
+  if (data) vkOpen.add(data.id);
   await loadVrtakyAdmin();
 }
 async function saveVrtakKat(id, field, val) {
@@ -2653,6 +2658,7 @@ async function createKategorieFromGroup(idx){
   const { data: kat, error: e1 } = await sb.from('vrtaky_kategorie')
     .insert({ nazev, poradi: maxP + 1 }).select().single();
   if(e1){ alert('Chyba vytvoření kategorie: ' + e1.message); return; }
+  vkOpen.add(kat.id);
   const polozky = sorted.map((r,i) => {
     const d = r.dims;
     const label = d ? ('Ø ' + String(d.prumer).replace('.', ',') + ' mm') : r.nazev;
