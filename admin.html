@@ -372,8 +372,31 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
         <svg class="s-chevron" id="vrtaky-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
       <div class="s-body" id="vrtaky-body" style="display:none">
-        <div>
-          <button class="btn btn-primary btn-sm" onclick="novaVrtakKategorie()">+ Nová kategorie / tabulka</button>
+
+        <!-- IMPORT Z CENÍKU -->
+        <div style="border:1px solid var(--line-s);border-radius:12px;padding:16px;background:var(--surface-2)">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6m0 0l3 3m-3-3l-3 3M5 14l7 8 7-8"/></svg>
+            Import z ceníku Milwaukee
+          </div>
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;line-height:1.5">Nahraj kompletní CSV ceník (artikl ; … ; název ; cena bez DPH). Nástroj sám rozpozná skupiny vrtáků, rozparsuje rozměry <b>Ø × pracovní × celková délka</b>, seřadí (Ø, pak pracovní délka) a vytvoří přehlednou tabulku.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer">📄 Nahrát CSV ceník
+              <input type="file" accept=".csv,.txt" style="display:none" onchange="onCenikFile(this)">
+            </label>
+            <span id="cenik-status" style="font-size:12px;color:var(--text-3)">Žádný ceník nenačten</span>
+          </div>
+          <div id="cenik-search-wrap" style="display:none">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+              <input class="inp" id="cenik-filter" style="flex:1;min-width:200px" placeholder="Hledat skupinu, např. SDS-Plus M2, MX4, korunka, vrták…" oninput="cenikRenderGroups()">
+              <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-only-dims" checked onchange="cenikRenderGroups()"> jen s rozměry</label>
+            </div>
+            <div id="cenik-groups" style="max-height:340px;overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:4px">
+          <button class="btn btn-primary btn-sm" onclick="novaVrtakKategorie()">+ Prázdná kategorie / tabulka</button>
         </div>
         <div id="vrtaky-admin-list"><div class="loading">Načítání…</div></div>
       </div>
@@ -2450,6 +2473,132 @@ async function bulkImportVrtak(katId) {
   } catch(e) {
     msg.textContent = '⚠ ' + e.message; msg.style.color = 'var(--red)';
   }
+}
+
+// ── IMPORT Z CENÍKU (parser bez API klíče) ───
+let cenikRows = [];   // {artikl, nazev, cena}
+
+function cenikNorm(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+function cenikNum(v){ return parseFloat(String(v||'').replace(/\s/g,'').replace(',', '.')) || 0; }
+
+// Rozparsuje rozměry: "6 x 50 x 110" → {prumer:6,prac:50,celk:110}; "5x215" → {prumer:5,prac:null,celk:215}
+function parseDims(name){
+  const m = name.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*[x×]\s*(\d+(?:[.,]\d+)?))?/i);
+  if(!m) return null;
+  const n = v => parseFloat(v.replace(',', '.'));
+  const a = n(m[1]), b = n(m[2]), c = m[3] ? n(m[3]) : null;
+  return c != null ? { prumer:a, prac:b, celk:c, idx:m.index } : { prumer:a, prac:null, celk:b, idx:m.index };
+}
+// Skupinový popisek: název bez "Milwaukee" a bez rozměrové části
+function baseLabel(name){
+  let s = (name||'').replace(/^\s*Milwaukee\s+/i,'').trim();
+  const d = parseDims(s);
+  if(d) s = s.slice(0, d.idx);
+  return s.replace(/\s+/g,' ').replace(/[\s\-–—]+$/,'').trim();
+}
+
+function onCenikFile(input){
+  const file = input.files[0]; input.value = '';
+  if(!file) return;
+  const status = document.getElementById('cenik-status');
+  status.textContent = 'Načítám…';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const lines = text.split(/\r?\n/);
+    cenikRows = [];
+    for(const line of lines){
+      if(!line.trim()) continue;
+      const c = line.split(';');
+      const artikl = (c[0]||'').trim();
+      const nazev  = (c[4]||c[3]||'').trim();   // sloupec E = plný název (fallback D)
+      const cena   = cenikNum(c[5]);            // sloupec F = cena bez DPH
+      if(!artikl || !nazev) continue;
+      cenikRows.push({ artikl, nazev, cena });
+    }
+    status.textContent = '✓ Načteno ' + cenikRows.length.toLocaleString('cs-CZ') + ' položek';
+    status.style.color = 'var(--green)';
+    document.getElementById('cenik-search-wrap').style.display = 'block';
+    document.getElementById('cenik-filter').value = '';
+    cenikRenderGroups();
+  };
+  reader.onerror = () => { status.textContent = '⚠ Chyba čtení souboru'; status.style.color = 'var(--red)'; };
+  reader.readAsText(file, 'utf-8');
+}
+
+function cenikRenderGroups(){
+  const box = document.getElementById('cenik-groups');
+  const q = cenikNorm(document.getElementById('cenik-filter').value.trim());
+  const onlyDims = document.getElementById('cenik-only-dims').checked;
+  if(!q){ box.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:8px 0">Napiš do hledání, co chceš najít (např. <b>SDS-Plus M2</b>, <b>MX4</b>, <b>korunka</b>).</div>'; return; }
+  const terms = q.split(/\s+/).filter(Boolean);
+  const groups = {};
+  for(const r of cenikRows){
+    const norm = cenikNorm(r.nazev);
+    if(!terms.every(t => norm.includes(t))) continue;
+    const dims = parseDims(r.nazev);
+    if(onlyDims && !dims) continue;
+    const key = baseLabel(r.nazev) || '(bez názvu)';
+    (groups[key] = groups[key] || []).push({ ...r, dims });
+  }
+  const keys = Object.keys(groups).sort((a,b) => groups[b].length - groups[a].length).slice(0, 60);
+  if(!keys.length){ box.innerHTML = '<div style="font-size:12px;color:var(--text-3);padding:8px 0">Nic nenalezeno.</div>'; return; }
+  window._cenikGroupsList = keys.map(k => groups[k]);   // index → rows[]
+  const total = Object.keys(groups).length;
+  box.innerHTML = keys.map((k,i) => {
+    const rows = groups[k];
+    const withDims = rows.filter(r => r.dims).length;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:var(--surface)">
+      <div style="flex:1;min-width:0">
+        <input class="vk-inp" id="cenik-name-${i}" value="${esc(k)}" style="font-weight:600">
+        <div style="font-size:11px;color:var(--text-3);margin-top:3px">${rows.length} položek · ${withDims} s rozměry</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="createKategorieFromGroup(${i})">Vytvořit kategorii</button>
+    </div>`;
+  }).join('') + (total>60 ? `<div style="font-size:11px;color:var(--text-3);padding:6px 0">…a další ${total-60} skupin — zpřesni hledání.</div>` : '');
+}
+
+async function createKategorieFromGroup(idx){
+  const rows = (window._cenikGroupsList || [])[idx];
+  if(!rows || !rows.length){ alert('Skupina je prázdná.'); return; }
+  const key = baseLabel(rows[0].nazev) || 'Nová kategorie';
+  const nazev = (document.getElementById('cenik-name-' + idx)?.value || key).trim();
+  // seřadit: Ø, pak pracovní délka, pak celková
+  const sorted = rows.slice().sort((a,b) => {
+    const da=a.dims, db=b.dims;
+    if(da && db){
+      return (da.prumer-db.prumer) || ((da.prac||0)-(db.prac||0)) || ((da.celk||0)-(db.celk||0));
+    }
+    if(da) return -1; if(db) return 1;
+    return a.nazev.localeCompare(b.nazev,'cs');
+  });
+  if(!confirm(`Vytvořit kategorii „${nazev}" s ${sorted.length} řádky?`)) return;
+  const maxP = vrtakyKat.reduce((m,k) => Math.max(m, k.poradi||0), 0);
+  const { data: kat, error: e1 } = await sb.from('vrtaky_kategorie')
+    .insert({ nazev, poradi: maxP + 1 }).select().single();
+  if(e1){ alert('Chyba vytvoření kategorie: ' + e1.message); return; }
+  const polozky = sorted.map((r,i) => {
+    const d = r.dims;
+    const label = d ? ('Ø ' + String(d.prumer).replace('.', ',') + ' mm') : r.nazev;
+    return {
+      kategorie_id: kat.id,
+      artikl: r.artikl,
+      nazev: label,
+      cena_bez_dph: r.cena,
+      sleva_pct: 0,
+      prumer: d ? d.prumer : null,
+      delka_prac: d ? d.prac : null,
+      delka_celk: d ? d.celk : null,
+      poradi: i + 1
+    };
+  });
+  // dávkový insert (po 500)
+  for(let i=0;i<polozky.length;i+=500){
+    const { error } = await sb.from('vrtaky_polozky').insert(polozky.slice(i,i+500));
+    if(error){ alert('Chyba vložení řádků: ' + error.message); break; }
+  }
+  await loadVrtakyAdmin();
+  document.getElementById('vrtaky-admin-list').scrollIntoView({ behavior:'smooth' });
 }
 
 async function loadPoptavky() {

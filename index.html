@@ -266,6 +266,18 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .cart-bar-btn:hover{opacity:.88}
 .cart-bar-btn:disabled{background:var(--card-bg);color:var(--text-5);border:1px solid var(--border);cursor:not-allowed}
 
+/* Vyhledávání */
+.vsearch-wrap{position:relative;display:flex;align-items:center}
+.vsearch-icon{position:absolute;left:16px;color:var(--text-4);pointer-events:none}
+.vsearch-input{width:100%;background:var(--card-bg);border:1px solid var(--border);border-radius:11px;padding:14px 44px;color:var(--text);font-family:inherit;font-size:15px;outline:none;transition:border-color .15s}
+.vsearch-input:focus{border-color:var(--text-4)}
+.vsearch-clear{position:absolute;right:12px;background:var(--container-bg);border:1px solid var(--border);color:var(--text-3);border-radius:6px;cursor:pointer;font-size:13px;padding:5px 9px;line-height:1;font-family:inherit}
+.vsearch-noresults{text-align:center;padding:40px 20px;color:var(--text-5);font-size:15px}
+.vsec.hidden-sec{display:none}
+.vtable tbody tr.row-hidden{display:none}
+.vt-dims{display:block;font-size:11px;font-weight:600;color:var(--text-4);margin-top:2px;letter-spacing:.01em}
+@media(max-width:640px){.vt-dims{margin-top:0}}
+
 /* Sekce / oddíl */
 .vsec{background:rgba(0,0,0,.08);border:1px solid var(--border);border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
 .vsec-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
@@ -383,6 +395,11 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
       <div class="cart-bar-total">Celkem po slevě: <b id="cart-total">0,- Kč</b> <span style="color:var(--text-5)">bez DPH</span></div>
     </div>
     <button class="cart-bar-btn" id="cart-submit-btn" onclick="openPoptavkaVrtaky()" disabled>Odeslat poptávku</button>
+  </div>
+  <div class="vsearch-wrap">
+    <svg class="vsearch-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input id="vsearch" class="vsearch-input" placeholder="Hledat: průměr, artikl, dvoubřitý, čtyřbřitý, korunka, 8 mm…" oninput="filterVrtaky()">
+    <button id="vsearch-clear" class="vsearch-clear" onclick="clearVrtakySearch()" style="display:none">✕</button>
   </div>
   <div id="vrtaky-sections"><div class="loading">Načítání…</div></div>
 </main>
@@ -664,6 +681,47 @@ let vrtakyPolMap = {};      // polozkaId -> {artikl,nazev,kategorie,cenaBez,slev
 
 function fmt2(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:2}); }
 function cenaPoSleve(bez, sleva){ return Number(bez||0) * (1 - Number(sleva||0)/100); }
+function vnorm(s){ return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+
+// Vyhledávací text řádku + synonyma (dvoubřitý=M2, čtyřbřitý=MX4/M4, korunka=dia)
+function vrtakySearchStr(p, katNazev){
+  let s = [p.artikl, p.nazev, katNazev].filter(Boolean).join(' ');
+  if (p.prumer != null) s += ' ' + p.prumer + ' ' + fmt2(p.prumer) + ' mm';
+  if (p.delka_prac != null) s += ' ' + p.delka_prac;
+  if (p.delka_celk != null) s += ' ' + p.delka_celk;
+  const n = vnorm(s);
+  let syn = '';
+  if (/\bm2\b/.test(n)) syn += ' dvoubrity 2britý dvoubřitý';
+  if (/\bmx4\b|\bm4\b/.test(n)) syn += ' ctyrbrity 4britý čtyřbřitý';
+  if (/koru/.test(n)) syn += ' dia diamant diamantova jadrove';
+  return vnorm(s + syn);
+}
+
+function filterVrtaky(){
+  const q = vnorm(document.getElementById('vsearch').value.trim());
+  document.getElementById('vsearch-clear').style.display = q ? 'block' : 'none';
+  const terms = q.split(/\s+/).filter(Boolean);
+  let anyVisible = false;
+  document.querySelectorAll('.vsec').forEach(sec => {
+    let secVisible = false;
+    const secName = sec.getAttribute('data-name') || '';
+    const secMatch = terms.length && terms.every(t => secName.includes(t)); // shoda na názvu sekce → ukázat vše
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const hay = tr.getAttribute('data-s') || '';
+      const show = !terms.length || secMatch || terms.every(t => hay.includes(t));
+      tr.classList.toggle('row-hidden', !show);
+      if (show) secVisible = true;
+    });
+    sec.classList.toggle('hidden-sec', !secVisible);
+    if (secVisible) anyVisible = true;
+  });
+  const nr = document.getElementById('vsearch-noresults');
+  if (nr) nr.style.display = (terms.length && !anyVisible) ? 'block' : 'none';
+}
+function clearVrtakySearch(){
+  document.getElementById('vsearch').value = '';
+  filterVrtaky();
+}
 
 async function loadVrtaky() {
   const wrap = document.getElementById('vrtaky-sections');
@@ -680,9 +738,12 @@ async function loadVrtaky() {
   }
 
   vrtakyPolMap = {};
-  wrap.innerHTML = kategorie.map(k => {
-    const pol = (k.vrtaky_polozky || []).sort((a,b) =>
-      (a.poradi - b.poradi) || (new Date(a.created_at) - new Date(b.created_at)));
+  wrap.innerHTML = kategorie.map((k, ki) => {
+    const pol = (k.vrtaky_polozky || []).slice().sort((a,b) => {
+      const ap = a.prumer != null, bp = b.prumer != null;
+      if (ap && bp) return (a.prumer-b.prumer) || ((a.delka_prac||0)-(b.delka_prac||0)) || ((a.delka_celk||0)-(b.delka_celk||0));
+      return (a.poradi - b.poradi) || (new Date(a.created_at) - new Date(b.created_at));
+    });
     if (!pol.length) return '';
 
     const foto = k.foto_url
@@ -694,10 +755,19 @@ async function loadVrtaky() {
       vrtakyPolMap[p.id] = { artikl: p.artikl, nazev: p.nazev, kategorie: k.nazev,
         cenaBez: Number(p.cena_bez_dph)||0, sleva: Number(p.sleva_pct)||0, cenaPo };
       const slevaTxt = Number(p.sleva_pct) > 0 ? `−${fmt2(p.sleva_pct)} %` : '—';
+      // rozměrový štítek malým písmem
+      let dims = '';
+      if (p.prumer != null) {
+        const parts = ['Ø ' + fmt2(p.prumer)];
+        if (p.delka_prac != null) parts.push('prac. ' + fmt2(p.delka_prac));
+        if (p.delka_celk != null) parts.push('celk. ' + fmt2(p.delka_celk));
+        dims = `<span class="vt-dims">${parts.join(' · ')} mm</span>`;
+      }
+      const search = vrtakySearchStr(p, k.nazev);
       return `
-        <tr id="vrow-${p.id}">
+        <tr id="vrow-${p.id}" data-s="${esc(search)}">
           <td class="vt-artikl" data-label="Artikl">${esc(p.artikl) || '—'}</td>
-          <td class="vt-nazev" data-label="Název">${esc(p.nazev) || '—'}</td>
+          <td class="vt-nazev" data-label="Název">${esc(p.nazev) || '—'}${dims}</td>
           <td class="vt-cena-list" data-label="Cena bez DPH">${fmt2(p.cena_bez_dph)} Kč</td>
           <td class="vt-sleva" data-label="Sleva">${slevaTxt}</td>
           <td class="vt-cena-po" data-label="Po slevě">${fmt2(cenaPo)} Kč</td>
@@ -713,7 +783,7 @@ async function loadVrtaky() {
     }).join('');
 
     return `
-      <section class="vsec">
+      <section class="vsec" id="vsec-${ki}" data-name="${esc(vnorm(k.nazev + ' ' + (k.popis||'')))}">
         <header class="vsec-head">
           ${foto}
           <div class="vsec-titles">
@@ -731,7 +801,7 @@ async function loadVrtaky() {
           </table>
         </div>
       </section>`;
-  }).join('');
+  }).join('') + `<div class="vsearch-noresults" id="vsearch-noresults" style="display:none">Nic nenalezeno — zkus jiný výraz.</div>`;
 
   updateCartBar();
 }
