@@ -301,6 +301,12 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .vtable thead th:nth-child(1),.vtable thead th:nth-child(2){text-align:left}
 .vtable tbody td{padding:10px 14px;border-bottom:1px solid var(--border-soft);text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2);white-space:nowrap}
 .vtable tbody tr:last-child td{border-bottom:none}
+.vtable tbody tr{transition:background .12s}
+@media(hover:hover){
+  .vtable tbody tr:hover{background:rgba(255,255,255,.07)}
+  .light .vtable tbody tr:hover{background:rgba(0,0,0,.04)}
+  .vtable tbody tr.in-cart:hover{background:rgba(22,163,74,.14)}
+}
 .vtable tbody tr.in-cart{background:rgba(22,163,74,.07)}
 .vt-artikl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:var(--text-4);text-align:left!important;white-space:nowrap}
 .vt-nazev{text-align:left!important;color:var(--text);font-weight:600}
