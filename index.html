@@ -275,8 +275,15 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .vsearch-noresults{text-align:center;padding:40px 20px;color:var(--text-5);font-size:15px}
 .vsec.hidden-sec{display:none}
 .vtable tbody tr.row-hidden{display:none}
-.vt-dims{display:block;font-size:11px;font-weight:600;color:var(--text-4);margin-top:2px;letter-spacing:.01em}
-@media(max-width:640px){.vt-dims{margin-top:0}}
+.vt-row1{display:flex;align-items:baseline;gap:14px}
+.vt-prumer{min-width:78px;font-weight:700;color:var(--text)}
+.vt-prac{color:var(--text-2);font-weight:600}
+.vt-celk{display:block;font-size:11px;font-weight:500;color:var(--text-4);margin-top:3px;letter-spacing:.01em}
+@media(max-width:640px){
+  .vt-row1{gap:10px}
+  .vt-prumer{min-width:70px}
+  .vt-celk{margin-top:2px}
+}
 
 /* Sekce / oddíl */
 .vsec{background:rgba(0,0,0,.08);border:1px solid var(--border);border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
@@ -755,19 +762,21 @@ async function loadVrtaky() {
       vrtakyPolMap[p.id] = { artikl: p.artikl, nazev: p.nazev, kategorie: k.nazev,
         cenaBez: Number(p.cena_bez_dph)||0, sleva: Number(p.sleva_pct)||0, cenaPo };
       const slevaTxt = Number(p.sleva_pct) > 0 ? `−${fmt2(p.sleva_pct)} %` : '—';
-      // rozměrový štítek malým písmem
-      let dims = '';
+      // buňka Název: Ø + pracovní délka na hlavním řádku (svisle zarovnané), celková délka pod tím menším
+      let nazevCell;
       if (p.prumer != null) {
-        const parts = ['Ø ' + fmt2(p.prumer)];
-        if (p.delka_prac != null) parts.push('prac. ' + fmt2(p.delka_prac));
-        if (p.delka_celk != null) parts.push('celk. ' + fmt2(p.delka_celk));
-        dims = `<span class="vt-dims">${parts.join(' · ')} mm</span>`;
+        const prum = `<span class="vt-prumer">Ø ${fmt2(p.prumer)} mm</span>`;
+        const prac = p.delka_prac != null ? `<span class="vt-prac">Pracovní délka ${fmt2(p.delka_prac)} mm</span>` : '';
+        const celk = p.delka_celk != null ? `<span class="vt-celk">Celková délka ${fmt2(p.delka_celk)} mm</span>` : '';
+        nazevCell = `<div class="vt-row1">${prum}${prac}</div>${celk}`;
+      } else {
+        nazevCell = esc(p.nazev) || '—';
       }
       const search = vrtakySearchStr(p, k.nazev);
       return `
         <tr id="vrow-${p.id}" data-s="${esc(search)}">
           <td class="vt-artikl" data-label="Artikl">${esc(p.artikl) || '—'}</td>
-          <td class="vt-nazev" data-label="Název">${esc(p.nazev) || '—'}${dims}</td>
+          <td class="vt-nazev" data-label="Název">${nazevCell}</td>
           <td class="vt-cena-list" data-label="Cena bez DPH">${fmt2(p.cena_bez_dph)} Kč</td>
           <td class="vt-sleva" data-label="Sleva">${slevaTxt}</td>
           <td class="vt-cena-po" data-label="Po slevě">${fmt2(cenaPo)} Kč</td>
