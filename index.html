@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" class="light">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Akční Sestavy – Drozda Nářadí</title>
 <meta name="description" content="Výhodné sady nářadí Milwaukee za akční ceny. Drozda Nářadí."/>
-<script>if(localStorage.getItem('theme')!=='dark')document.documentElement.classList.add('light');</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -53,8 +52,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .brand span{color:var(--text-6)}
 .topbar-right{display:flex;align-items:center;gap:16px}
 .topbar-tag{color:var(--text-4);font-weight:500}
-.theme-btn{background:var(--container-bg);border:1px solid var(--border);color:var(--text-3);font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:border-color .15s}
-.theme-btn:hover{border-color:var(--text-4)}
 
 /* HERO */
 .hero{max-width:1280px;margin:0 auto;padding:36px 60px 28px;display:flex;align-items:center;justify-content:space-between;gap:40px}
@@ -396,7 +393,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
     <div class="brand"><strong id="pg-brand">Drozda Nářadí</strong><span id="pg-presents">Presents</span></div>
     <div class="topbar-right">
       <div class="topbar-tag" id="pg-tag">Akční sestavy</div>
-      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">Světlý režim</button>
     </div>
   </div>
 </header>
@@ -494,18 +490,6 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 </div>
 
 <script>
-// Theme — init button label after DOM ready
-(function(){
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = document.documentElement.classList.contains('light') ? 'Tmavý režim' : 'Světlý režim';
-})();
-
-function toggleTheme() {
-  const light = document.documentElement.classList.toggle('light');
-  localStorage.setItem('theme', light ? 'light' : 'dark');
-  document.getElementById('theme-btn').textContent = light ? 'Tmavý režim' : 'Světlý režim';
-}
-
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetail(); closePoptavka(); } });
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
