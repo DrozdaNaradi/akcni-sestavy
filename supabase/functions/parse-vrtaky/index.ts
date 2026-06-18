@@ -42,6 +42,7 @@ Pro KAŽDOU položku ze vstupu vrať jeden objekt s poli:
 Pravidla:
 - Zkratky: M2 = dvoubřitý, MX4 = čtyřbřitý, korunka dia = diamantová korunka pro jádrové vrtání.
 - U rozměru "A x B x C" je A=průměr, B=pracovní délka, C=celková délka.
+- U "A x B/C" (lomítko, např. SDS-Max "16 x 800/940") je A=průměr, B=pracovní délka, C=celková délka.
 - U "A x B" je A=průměr, B=celková délka (pracovní neznámá => null).
 - Desetinná čárka i tečka jsou platné (5,5 = 5.5).
 - Pokud položka NENÍ vrták/korunka/řezný nástroj s rozměry (např. adaptér, sada bez rozměrů, příslušenství),

@@ -2491,9 +2491,10 @@ function cenikNum(v){ return parseFloat(String(v||'').replace(/\s/g,'').replace(
 // Rozparsuje rozměry:
 //   "6 x 50 x 110" → {prumer:6,prac:50,celk:110}
 //   "5x215"        → {prumer:5,prac:null,celk:215}
+//   "16 x 800/940" → {prumer:16,prac:800,celk:940}      (SDS-Max: pracovní/celková přes lomítko)
 //   "Ø 3,3mm"      → {prumer:3.3,prac:null,celk:null}  (vrtáky do kovu, RedHex apod.)
 function parseDims(name){
-  let m = name.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*[x×]\s*(\d+(?:[.,]\d+)?))?/i);
+  let m = name.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*[x×\/]\s*(\d+(?:[.,]\d+)?))?/i);
   if(m){
     const n = v => parseFloat(v.replace(',', '.'));
     const a = n(m[1]), b = n(m[2]), c = m[3] ? n(m[3]) : null;
