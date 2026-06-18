@@ -704,6 +704,11 @@ function vrtakySearchStr(p, katNazev){
   return vnorm(s + syn);
 }
 
+// shoda termínu i přes mezery: "redhex" najde "red hex", "sdsplus" najde "sds plus"
+function vmatch(hay, term){
+  if (hay.includes(term)) return true;
+  return hay.replace(/\s+/g,'').includes(term.replace(/\s+/g,''));
+}
 function filterVrtaky(){
   const q = vnorm(document.getElementById('vsearch').value.trim());
   document.getElementById('vsearch-clear').style.display = q ? 'block' : 'none';
@@ -712,10 +717,10 @@ function filterVrtaky(){
   document.querySelectorAll('.vsec').forEach(sec => {
     let secVisible = false;
     const secName = sec.getAttribute('data-name') || '';
-    const secMatch = terms.length && terms.every(t => secName.includes(t)); // shoda na názvu sekce → ukázat vše
+    const secMatch = terms.length && terms.every(t => vmatch(secName, t)); // shoda na názvu sekce → ukázat vše
     sec.querySelectorAll('tbody tr').forEach(tr => {
       const hay = tr.getAttribute('data-s') || '';
-      const show = !terms.length || secMatch || terms.every(t => hay.includes(t));
+      const show = !terms.length || secMatch || terms.every(t => vmatch(hay, t));
       tr.classList.toggle('row-hidden', !show);
       if (show) secVisible = true;
     });

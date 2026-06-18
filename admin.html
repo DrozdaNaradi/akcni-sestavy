@@ -2481,20 +2481,28 @@ let cenikRows = [];   // {artikl, nazev, cena}
 function cenikNorm(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
 function cenikNum(v){ return parseFloat(String(v||'').replace(/\s/g,'').replace(',', '.')) || 0; }
 
-// Rozparsuje rozměry: "6 x 50 x 110" → {prumer:6,prac:50,celk:110}; "5x215" → {prumer:5,prac:null,celk:215}
+// Rozparsuje rozměry:
+//   "6 x 50 x 110" → {prumer:6,prac:50,celk:110}
+//   "5x215"        → {prumer:5,prac:null,celk:215}
+//   "Ø 3,3mm"      → {prumer:3.3,prac:null,celk:null}  (vrtáky do kovu, RedHex apod.)
 function parseDims(name){
-  const m = name.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*[x×]\s*(\d+(?:[.,]\d+)?))?/i);
-  if(!m) return null;
-  const n = v => parseFloat(v.replace(',', '.'));
-  const a = n(m[1]), b = n(m[2]), c = m[3] ? n(m[3]) : null;
-  return c != null ? { prumer:a, prac:b, celk:c, idx:m.index } : { prumer:a, prac:null, celk:b, idx:m.index };
+  let m = name.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)(?:\s*[x×]\s*(\d+(?:[.,]\d+)?))?/i);
+  if(m){
+    const n = v => parseFloat(v.replace(',', '.'));
+    const a = n(m[1]), b = n(m[2]), c = m[3] ? n(m[3]) : null;
+    return c != null ? { prumer:a, prac:b, celk:c, idx:m.index } : { prumer:a, prac:null, celk:b, idx:m.index };
+  }
+  // jednorozměrový (jen průměr): volitelné Ø, číslo, mm
+  m = name.match(/(?:Ø|⌀|prům\.?)?\s*(\d+(?:[.,]\d+)?)\s*mm\b/i);
+  if(m) return { prumer: parseFloat(m[1].replace(',', '.')), prac:null, celk:null, idx:m.index };
+  return null;
 }
-// Skupinový popisek: název bez "Milwaukee" a bez rozměrové části
+// Skupinový popisek: název bez "Milwaukee" a bez rozměrové části (vč. koncového Ø)
 function baseLabel(name){
   let s = (name||'').replace(/^\s*Milwaukee\s+/i,'').trim();
   const d = parseDims(s);
   if(d) s = s.slice(0, d.idx);
-  return s.replace(/\s+/g,' ').replace(/[\s\-–—]+$/,'').trim();
+  return s.replace(/\s+/g,' ').replace(/[\s\-–—Ø⌀]+$/,'').trim();
 }
 
 function onCenikFile(input){
