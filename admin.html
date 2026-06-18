@@ -399,9 +399,10 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
               <input class="inp" id="cenik-filter" style="flex:1;min-width:200px" placeholder="Hledat skupinu, např. SDS-Plus M2, MX4, korunka, vrták…" oninput="cenikRenderGroups()">
               <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-only-dims" checked onchange="cenikRenderGroups()"> jen s rozměry</label>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-              <button class="btn btn-secondary btn-sm" onclick="cenikAI()">✨ Dořešit nerozpoznané přes AI</button>
-              <span id="cenik-ai-status" style="font-size:12px;color:var(--text-3)">AI doplní rozměry/skupiny u názvů, které parser nerozpozná (jen aktuální filtr).</span>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+              <button class="btn btn-secondary btn-sm" onclick="cenikAI()">✨ Roztřídit přes AI</button>
+              <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-ai-all"> i položky, které zvládl parser (přesné kategorie e-shopu)</label>
+              <span id="cenik-ai-status" style="font-size:12px;color:var(--text-3)">AI roztřídí položky z aktuálního filtru do kategorií e-shopu a doplní rozměry.</span>
             </div>
             <div id="cenik-groups" style="max-height:340px;overflow-y:auto"></div>
           </div>
@@ -2602,9 +2603,10 @@ async function cenikAI(){
   if(!cenikRows.length){ alert('Nejdřív nahraj CSV ceník.'); return; }
   const q = cenikNorm(document.getElementById('cenik-filter').value.trim());
   const terms = q.split(/\s+/).filter(Boolean);
+  const aiAll = document.getElementById('cenik-ai-all').checked;
   const pending = cenikRows.filter(r => {
     if(r._aiDims !== undefined) return false;          // už zpracováno AI
-    if(parseDims(r.nazev)) return false;               // parser to zvládl sám
+    if(!aiAll && parseDims(r.nazev)) return false;     // hybrid: parser to zvládl sám
     if(terms.length){ const n = cenikNorm(r.nazev); if(!terms.every(t => n.includes(t))) return false; }
     return true;
   });

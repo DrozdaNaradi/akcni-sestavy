@@ -28,25 +28,61 @@ function corsFor(req: Request): Record<string, string> {
 const json = (o: unknown, status: number, cors: Record<string, string>) =>
   new Response(JSON.stringify(o), { status, headers: { ...cors, "content-type": "application/json" } });
 
-const SYSTEM = `Jsi parser produktových názvů nářadí Milwaukee (vrtáky, vrtací korunky, děrovky, sady apod.).
-Pro KAŽDOU položku ze vstupu vrať jeden objekt s poli:
+const SYSTEM = `Jsi expert na sortiment vrtáků a řezných nástrojů Milwaukee. Logicky uvažuj, k čemu každý artikl patří
+(podle materiálu, typu uchycení, použití) a rozparsuj rozměry.
+
+Pro KAŽDOU položku ze vstupu vrať jeden objekt:
 - "i": pořadové číslo položky ze vstupu (stejné, jaké přišlo)
-- "kategorie": čistý, SJEDNOCENÝ název skupiny BEZ rozměrů a balení. Stejné typy = naprosto stejný řetězec.
-  Příklady: "Vrták SDS-Plus M2", "Vrták MX4 SDS-Plus", "Vrták SDS-Max", "Diamantová vrtací korunka",
-  "Vrták do kovu RedHex HSS-G", "Vrták do dlažby a obkladů", "Děrovka Hole Dozer".
+- "kategorie": zařaď artikl do NEJVHODNĚJŠÍ kategorie z tohoto seznamu (použij PŘESNĚ tento název).
+  Pokud žádná nesedí, vytvoř rozumný vlastní název, ale preferuj tyto:
+  • Sady vrtáků
+  • SDS Plus
+  • SDS Plus s odsáváním
+  • SDS Max (vrtáky)
+  • SDS MAX korunky do zdiva
+  • Vrták do betonu Premium s dříkem
+  • Příklepový vrták do betonu - válcová stopka
+  • Vrták do betonu DIN 8039
+  • Vrták do betonu válcová stopka
+  • HEX Univerzální vrtáky
+  • Univerzální vrták
+  • RED HEX titanové vrtáky do kovu
+  • RED HEX titanové vrtáky do kovu BULK
+  • Vrtáky do kovu
+  • Kombinované závitníky HSS-G
+  • Diamantové jádrové korunky
+  • Diamantové mokré vrtání HEX
+  • Diamantové suché vrtání
+  • Vrtáky na sklo a keramiku
+  • Stupňovité vrtáky
+  • Samořezné vrtáky HEX Dřevo
+  • Spirálový vrták do dřeva HEX
+  • Spirálové vrtáky do dřeva
+  • SPEED FEED Vrtáky do dřeva
+  • Forstner vrták
+  • Vrták dřevo centrovací trn
+  • Ploché frézovací vrtáky
+  • SHOCKWAVE Hadovitý vrták
+  • SWITCHBLADE Samořezné vrtáky
+  • Kruhové pilky HCS
+  • Kruhové pilky na nerez TCT
+  • Kruhové pilky na kov
+  • Sklíčidla
+  • Příslušenství
 - "prumer": průměr v mm jako číslo, nebo null
-- "delka_prac": pracovní délka v mm jako číslo, nebo null
+- "delka_prac": pracovní (užitná) délka v mm jako číslo, nebo null
 - "delka_celk": celková délka v mm jako číslo, nebo null
 - "baleni": počet kusů v balení jako celé číslo, nebo null (např. "- 10ks" => 10)
 
-Pravidla:
-- Zkratky: M2 = dvoubřitý, MX4 = čtyřbřitý, korunka dia = diamantová korunka pro jádrové vrtání.
-- U rozměru "A x B x C" je A=průměr, B=pracovní délka, C=celková délka.
-- U "A x B/C" (lomítko, např. SDS-Max "16 x 800/940") je A=průměr, B=pracovní délka, C=celková délka.
-- U "A x B" je A=průměr, B=celková délka (pracovní neznámá => null).
+Rozměry – pravidla:
+- Zkratky: M2 = dvoubřitý, MX4 = čtyřbřitý, RedHex = vrták do kovu, korunka dia = diamantová pro jádrové vrtání.
+- "A x B x C" => A=průměr, B=pracovní délka, C=celková délka.
+- "A x B/C" (lomítko, např. SDS-Max "16 x 800/940") => A=průměr, B=pracovní délka, C=celková délka.
+- "A x B" => A=průměr, B=celková délka (pracovní neznámá => null).
+- "Ø 6mm" / "6 mm" (jen jeden rozměr) => A=průměr, délky null.
 - Desetinná čárka i tečka jsou platné (5,5 = 5.5).
-- Pokud položka NENÍ vrták/korunka/řezný nástroj s rozměry (např. adaptér, sada bez rozměrů, příslušenství),
-  dej rozměry null a do "kategorie" napiš rozumný obecný název (např. "Sada vrtáků", "Příslušenství").`;
+- Když je u kruhové pilky / korunky jen jeden rozměr, je to průměr.
+- Nejistou hodnotu nech null, nikdy nehádej.`;
 
 Deno.serve(async (req) => {
   const cors = corsFor(req);
