@@ -250,6 +250,88 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 .modal-success-icon{font-size:52px;margin-bottom:16px}
 .modal-success h3{font-size:22px;font-weight:700;margin-bottom:10px;color:var(--text)}
 .modal-success p{font-size:14px;color:var(--text-3);line-height:1.6}
+
+/* ============ VRTÁKY REŽIM ============ */
+.vrtaky{max-width:1280px;margin:0 auto;padding:8px 60px 80px;display:flex;flex-direction:column;gap:28px}
+
+/* Sticky košík bar */
+.cart-bar{position:sticky;top:0;z-index:50;background:var(--container-bg);border:1px solid var(--border);border-radius:13px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;backdrop-filter:blur(10px)}
+.cart-bar-info{display:flex;align-items:center;gap:18px;flex-wrap:wrap;min-width:0}
+.cart-bar-count{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;color:var(--text)}
+.cart-bar-count svg{color:var(--red);flex-shrink:0}
+.cart-badge{background:var(--red);color:#fff;font-size:12px;font-weight:800;border-radius:20px;min-width:22px;height:22px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.cart-bar-total{font-size:13px;color:var(--text-3);font-weight:600}
+.cart-bar-total b{color:var(--text);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.cart-bar-btn{padding:11px 22px;background:#16a34a;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;letter-spacing:-.01em;cursor:pointer;transition:opacity .15s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;gap:8px}
+.cart-bar-btn:hover{opacity:.88}
+.cart-bar-btn:disabled{background:var(--card-bg);color:var(--text-5);border:1px solid var(--border);cursor:not-allowed}
+
+/* Sekce / oddíl */
+.vsec{background:rgba(0,0,0,.08);border:1px solid var(--border);border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.vsec-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.vsec-foto{width:160px;height:120px;flex-shrink:0;background:#fff;border:1px solid var(--card-border);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
+.vsec-foto img{width:100%;height:100%;object-fit:contain;padding:8px}
+.vsec-titles{flex:1;min-width:0}
+.vsec-name{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--text);margin:0 0 4px}
+.vsec-desc{font-size:14px;color:var(--text-3);line-height:1.45;margin:0}
+
+/* Tabulka */
+.vtable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--card-border);border-radius:11px}
+.vtable{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+.vtable thead th{background:var(--card-bg);color:var(--text-4);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:right;padding:11px 14px;border-bottom:1px solid var(--card-border);white-space:nowrap}
+.vtable thead th:nth-child(1),.vtable thead th:nth-child(2){text-align:left}
+.vtable tbody td{padding:10px 14px;border-bottom:1px solid var(--border-soft);text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2);white-space:nowrap}
+.vtable tbody tr:last-child td{border-bottom:none}
+.vtable tbody tr.in-cart{background:rgba(22,163,74,.07)}
+.vt-artikl{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;color:var(--text-4);text-align:left!important}
+.vt-nazev{text-align:left!important;color:var(--text);font-weight:600}
+.vt-cena-list{color:var(--text-5)}
+.vt-sleva{color:var(--red);font-weight:700}
+.vt-cena-po{color:var(--sale-color);font-weight:700;font-size:15px}
+.light .vt-cena-po{color:#1a1a1a}
+.vt-qty{text-align:center!important}
+
+/* Stepper */
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--card-border);border-radius:8px;overflow:hidden;background:var(--card-bg)}
+.stepper button{width:30px;height:32px;border:none;background:transparent;color:var(--text-2);font-size:18px;font-weight:600;cursor:pointer;line-height:1;font-family:inherit;transition:background .12s}
+.stepper button:hover{background:rgba(128,128,128,.15)}
+.stepper input{width:42px;height:32px;border:none;border-left:1px solid var(--card-border);border-right:1px solid var(--card-border);background:transparent;color:var(--text);text-align:center;font-family:inherit;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;outline:none;-moz-appearance:textfield}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* Košík souhrn v modalu */
+.cart-summary{background:rgba(128,128,128,.07);border:1px solid var(--border-soft);border-radius:10px;padding:14px 16px;margin-bottom:18px;max-height:240px;overflow-y:auto}
+.cart-summary-title{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px}
+.cart-line{display:flex;justify-content:space-between;gap:12px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+.cart-line:last-child{border-bottom:none}
+.cart-line-name{color:var(--text-2);min-width:0}
+.cart-line-name b{color:var(--text);font-weight:600}
+.cart-line-qty{color:var(--text-4);font-size:12px}
+.cart-line-price{color:var(--text);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cart-summary-total{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)}
+
+@media(max-width:900px){
+  .vrtaky{padding:8px 16px 60px;gap:20px}
+  .vsec{padding:18px}
+  .vsec-name{font-size:22px}
+  .vsec-foto{width:120px;height:90px}
+}
+@media(max-width:640px){
+  .cart-bar{padding:12px 14px}
+  .cart-bar-btn{width:100%;justify-content:center}
+  /* tabulka → karty */
+  .vtable-wrap{overflow:visible;border:none;border-radius:0}
+  .vtable{min-width:0;border:none}
+  .vtable thead{display:none}
+  .vtable tbody td{border:none}
+  .vtable tbody tr{display:grid;grid-template-columns:auto auto;gap:2px 10px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 14px;margin-bottom:10px;align-items:center}
+  .vtable tbody tr.in-cart{border-color:#16a34a}
+  .vtable tbody td{padding:3px 0;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+  .vtable tbody td::before{content:attr(data-label);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-4);margin-right:auto}
+  .vt-nazev{grid-column:1/-1;font-size:16px}
+  .vt-nazev::before{display:none}
+  .vt-artikl{order:-1;grid-column:1/-1}
+  .vt-qty{grid-column:1/-1;justify-content:space-between;padding-top:8px!important;margin-top:4px;border-top:1px solid var(--border-soft)!important}
+}
 </style>
 </head>
 <body>
@@ -291,17 +373,32 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
   <div class="loading">Načítání…</div>
 </main>
 
+<main class="vrtaky" id="vrtaky-view" style="display:none">
+  <div class="cart-bar" id="cart-bar">
+    <div class="cart-bar-info">
+      <div class="cart-bar-count">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span>Košík</span><span class="cart-badge" id="cart-badge">0</span>
+      </div>
+      <div class="cart-bar-total">Celkem po slevě: <b id="cart-total">0,- Kč</b> <span style="color:var(--text-5)">bez DPH</span></div>
+    </div>
+    <button class="cart-bar-btn" id="cart-submit-btn" onclick="openPoptavkaVrtaky()" disabled>Odeslat poptávku</button>
+  </div>
+  <div id="vrtaky-sections"><div class="loading">Načítání…</div></div>
+</main>
+
 <footer class="page-footer">© <span id="pg-footer-brand">Drozda Nářadí</span> · Akce platí jen po omezenou dobu.</footer>
 
 <div class="modal-overlay hidden" id="poptavka-modal">
   <div class="modal-box">
     <button class="modal-close" onclick="closePoptavka()">×</button>
     <div id="poptavka-form-wrap">
-      <div class="modal-title">Mám zájem o sestavu</div>
+      <div class="modal-title" id="poptavka-title">Mám zájem o sestavu</div>
       <div class="modal-subtitle" id="poptavka-nazev-label"></div>
       <div style="font-size:13px;font-weight:700;color:var(--text-3);margin-bottom:16px;padding:10px 14px;background:rgba(128,128,128,.08);border-radius:8px;line-height:1.5">
         ⚠️ <strong>Toto není závazná objednávka — pouze rezervace.</strong><br>Nabídka platí do vyprodání zásob.
       </div>
+      <div class="cart-summary hidden" id="poptavka-cart-summary"></div>
       <div class="form-group">
         <label class="form-label">Jméno a příjmení *</label>
         <input class="form-input" id="p-jmeno" type="text" placeholder="Jan Novák">
@@ -395,19 +492,22 @@ function fmt(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigi
 function fmtKc(n){ return fmt(n) + ',- Kč'; }
 function fmtKcDph(n){ return fmt(n) + ',- Kč s DPH'; }
 
+let pageMode = 'sestavy';
+
 async function loadSettings() {
   try {
     const { data } = await sb.from('page_settings').select('*').eq('id', 1).maybeSingle();
     if (!data) return;
+    pageMode = data.aktivni_rezim === 'vrtaky' ? 'vrtaky' : 'sestavy';
     const set = (id, val) => { if (val) { const el = document.getElementById(id); if (el) el.textContent = val; } };
     set('pg-brand', data.brand);
     set('pg-footer-brand', data.brand);
     set('pg-presents', data.presents);
-    set('pg-tag', data.tag);
+    set('pg-tag', pageMode === 'vrtaky' ? (data.vrtaky_h1 || 'Vrtáky') : data.tag);
     set('pg-eyebrow', data.eyebrow);
-    set('pg-h1', data.h1);
-    set('pg-subtitle', data.subtitle);
-    if (data.hero_image_url) {
+    set('pg-h1', pageMode === 'vrtaky' ? (data.vrtaky_h1 || 'Vrtáky') : data.h1);
+    set('pg-subtitle', pageMode === 'vrtaky' ? (data.vrtaky_subtitle || 'Vyberte průměry a počty kusů, odešlete poptávku.') : data.subtitle);
+    if (data.hero_image_url && pageMode !== 'vrtaky') {
       const imgEl = document.getElementById('hero-img');
       const wrapEl = document.getElementById('hero-img-wrap');
       if (imgEl) imgEl.src = data.hero_image_url;
@@ -418,6 +518,13 @@ async function loadSettings() {
 
 async function load() {
   await loadSettings();
+
+  if (pageMode === 'vrtaky') {
+    document.getElementById('sestavy').style.display = 'none';
+    document.getElementById('vrtaky-view').style.display = 'flex';
+    document.title = (document.getElementById('pg-h1').textContent || 'Vrtáky') + ' – Drozda Nářadí';
+    return loadVrtaky();
+  }
 
   const { data: sestavy } = await sb
     .from('sestavy')
@@ -551,14 +658,130 @@ async function load() {
   }).join('');
 }
 
+/* ===================== VRTÁKY ===================== */
+let vrtakyCart = {};        // polozkaId -> qty
+let vrtakyPolMap = {};      // polozkaId -> {artikl,nazev,kategorie,cenaBez,sleva,cenaPo}
+
+function fmt2(n){ return Number(n||0).toLocaleString('cs-CZ',{maximumFractionDigits:2}); }
+function cenaPoSleve(bez, sleva){ return Number(bez||0) * (1 - Number(sleva||0)/100); }
+
+async function loadVrtaky() {
+  const wrap = document.getElementById('vrtaky-sections');
+  const { data: kategorie } = await sb
+    .from('vrtaky_kategorie')
+    .select('*, vrtaky_polozky(*)')
+    .eq('aktivni', true)
+    .order('poradi', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
+
+  if (!kategorie || !kategorie.length) {
+    wrap.innerHTML = `<div class="empty"><h2>Momentálně žádná nabídka</h2><p>Brzy přidáme produkty.</p></div>`;
+    return;
+  }
+
+  vrtakyPolMap = {};
+  wrap.innerHTML = kategorie.map(k => {
+    const pol = (k.vrtaky_polozky || []).sort((a,b) =>
+      (a.poradi - b.poradi) || (new Date(a.created_at) - new Date(b.created_at)));
+    if (!pol.length) return '';
+
+    const foto = k.foto_url
+      ? `<div class="vsec-foto" onclick="openImg('${esc(k.foto_url)}','${esc(k.nazev)}')"><img src="${esc(k.foto_url)}" alt="${esc(k.nazev)}" onerror="this.parentElement.style.display='none'"></div>`
+      : '';
+
+    const rows = pol.map(p => {
+      const cenaPo = cenaPoSleve(p.cena_bez_dph, p.sleva_pct);
+      vrtakyPolMap[p.id] = { artikl: p.artikl, nazev: p.nazev, kategorie: k.nazev,
+        cenaBez: Number(p.cena_bez_dph)||0, sleva: Number(p.sleva_pct)||0, cenaPo };
+      const slevaTxt = Number(p.sleva_pct) > 0 ? `−${fmt2(p.sleva_pct)} %` : '—';
+      return `
+        <tr id="vrow-${p.id}">
+          <td class="vt-artikl" data-label="Artikl">${esc(p.artikl) || '—'}</td>
+          <td class="vt-nazev" data-label="Název">${esc(p.nazev) || '—'}</td>
+          <td class="vt-cena-list" data-label="Cena bez DPH">${fmt2(p.cena_bez_dph)} Kč</td>
+          <td class="vt-sleva" data-label="Sleva">${slevaTxt}</td>
+          <td class="vt-cena-po" data-label="Po slevě">${fmt2(cenaPo)} Kč</td>
+          <td class="vt-qty" data-label="Počet ks">
+            <div class="stepper">
+              <button type="button" onclick="cartStep('${p.id}',-1)" aria-label="méně">−</button>
+              <input type="number" min="0" step="1" value="0" id="qty-${p.id}"
+                     inputmode="numeric" onchange="cartSet('${p.id}',this.value)">
+              <button type="button" onclick="cartStep('${p.id}',1)" aria-label="více">+</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    return `
+      <section class="vsec">
+        <header class="vsec-head">
+          ${foto}
+          <div class="vsec-titles">
+            <h2 class="vsec-name">${esc(k.nazev)}</h2>
+            ${k.popis ? `<p class="vsec-desc">${esc(k.popis)}</p>` : ''}
+          </div>
+        </header>
+        <div class="vtable-wrap">
+          <table class="vtable">
+            <thead><tr>
+              <th>Artikl</th><th>Název</th><th>Cena bez DPH</th>
+              <th>Sleva</th><th>Cena po slevě</th><th>Počet ks</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </section>`;
+  }).join('');
+
+  updateCartBar();
+}
+
+function openImg(url, alt) {
+  document.getElementById('detail-img').src = url;
+  document.getElementById('detail-img').alt = alt || '';
+  document.getElementById('detail-name').textContent = alt || '';
+  document.getElementById('detail-popis').innerHTML = '';
+  document.getElementById('detail-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cartStep(id, delta) {
+  const cur = vrtakyCart[id] || 0;
+  cartSet(id, cur + delta);
+}
+function cartSet(id, val) {
+  let q = Math.max(0, Math.floor(Number(val) || 0));
+  if (q > 0) vrtakyCart[id] = q; else delete vrtakyCart[id];
+  const input = document.getElementById('qty-' + id);
+  if (input) input.value = q;
+  const row = document.getElementById('vrow-' + id);
+  if (row) row.classList.toggle('in-cart', q > 0);
+  updateCartBar();
+}
+
+function cartItems() {
+  return Object.keys(vrtakyCart).map(id => {
+    const p = vrtakyPolMap[id]; if (!p) return null;
+    const qty = vrtakyCart[id];
+    return { id, ...p, qty, radek: p.cenaPo * qty };
+  }).filter(Boolean);
+}
+
+function updateCartBar() {
+  const items = cartItems();
+  const ks = items.reduce((a, i) => a + i.qty, 0);
+  const total = items.reduce((a, i) => a + i.radek, 0);
+  document.getElementById('cart-badge').textContent = ks;
+  document.getElementById('cart-total').textContent = fmt2(total) + ',- Kč';
+  document.getElementById('cart-submit-btn').disabled = items.length === 0;
+}
+
+/* ===================== POPTÁVKA ===================== */
+let poptavkaTyp = 'sestava';
 let poptavkaSestavId = null;
 let poptavkaSestavNazev = '';
 
-function openPoptavka(id, nazev, cislo) {
-  poptavkaSestavId = id;
-  poptavkaSestavNazev = nazev;
-  const c = cislo || sestavaCislo(id);
-  document.getElementById('poptavka-nazev-label').innerHTML = `${esc(nazev)} <span style="font-size:11px;font-weight:700;color:#888;margin-left:6px">${c}</span>`;
+function resetPoptavkaForm() {
   document.getElementById('poptavka-form-wrap').classList.remove('hidden');
   document.getElementById('poptavka-success').classList.add('hidden');
   document.getElementById('p-jmeno').value = '';
@@ -571,6 +794,39 @@ function openPoptavka(id, nazev, cislo) {
   document.getElementById('p-submit').textContent = 'Odeslat zájem';
   document.getElementById('poptavka-modal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+}
+
+function openPoptavkaVrtaky() {
+  const items = cartItems();
+  if (!items.length) return;
+  poptavkaTyp = 'vrtaky';
+  poptavkaSestavId = null;
+  poptavkaSestavNazev = 'Vrtáky – poptávka';
+  const total = items.reduce((a, i) => a + i.radek, 0);
+  document.getElementById('poptavka-title').textContent = 'Poptávka vrtáků';
+  document.getElementById('poptavka-nazev-label').innerHTML =
+    `<b>${items.length}</b> položek · celkem <b>${fmt2(total)},- Kč</b> bez DPH`;
+  const cart = document.getElementById('poptavka-cart-summary');
+  cart.innerHTML = `<div class="cart-summary-title">Vybrané položky</div>` +
+    items.map(i => `
+      <div class="cart-line">
+        <span class="cart-line-name"><b>${esc(i.nazev)}</b> <span class="cart-line-qty">${esc(i.artikl)} · ${i.qty}×</span></span>
+        <span class="cart-line-price">${fmt2(i.radek)} Kč</span>
+      </div>`).join('') +
+    `<div class="cart-summary-total"><span>Celkem bez DPH</span><span>${fmt2(total)},- Kč</span></div>`;
+  cart.classList.remove('hidden');
+  resetPoptavkaForm();
+}
+
+function openPoptavka(id, nazev, cislo) {
+  poptavkaTyp = 'sestava';
+  poptavkaSestavId = id;
+  poptavkaSestavNazev = nazev;
+  document.getElementById('poptavka-title').textContent = 'Mám zájem o sestavu';
+  document.getElementById('poptavka-cart-summary').classList.add('hidden');
+  const c = cislo || sestavaCislo(id);
+  document.getElementById('poptavka-nazev-label').innerHTML = `${esc(nazev)} <span style="font-size:11px;font-weight:700;color:#888;margin-left:6px">${c}</span>`;
+  resetPoptavkaForm();
 }
 
 function closePoptavka() {
@@ -589,17 +845,29 @@ async function submitPoptavka() {
   const komentar = document.getElementById('p-komentar').value.trim();
   const doruceni = document.querySelector('input[name="doruceni"]:checked').value;
   if (!jmeno || !email || !telefon) { alert('Vyplňte prosím všechna povinná pole (jméno, e-mail, telefon).'); return; }
+  let polozky = null, total = 0;
+  if (poptavkaTyp === 'vrtaky') {
+    const items = cartItems();
+    if (!items.length) { alert('Košík je prázdný.'); return; }
+    polozky = items.map(i => ({ artikl: i.artikl, nazev: i.nazev, kategorie: i.kategorie,
+      cena_bez_dph: i.cenaBez, sleva_pct: i.sleva, cena_po_sleve: i.cenaPo, pocet: i.qty, radek: i.radek }));
+    total = items.reduce((a, i) => a + i.radek, 0);
+  }
   const btn = document.getElementById('p-submit');
   btn.disabled = true;
   btn.textContent = 'Odesílám…';
   try {
     const { error } = await sb.from('poptavky').insert({
       sestava_id: poptavkaSestavId,
-      sestava_nazev: poptavkaSestavNazev,
+      sestava_nazev: poptavkaTyp === 'vrtaky'
+        ? `Vrtáky – ${polozky.length} pol. · ${fmt2(total)} Kč bez DPH`
+        : poptavkaSestavNazev,
       jmeno, email, telefon,
       komentar: komentar || null,
       zpusob_doruceni: doruceni,
-      status: 'nová'
+      status: 'nová',
+      typ: poptavkaTyp,
+      polozky_json: polozky
     });
     if (error) throw error;
     document.getElementById('poptavka-form-wrap').classList.add('hidden');
