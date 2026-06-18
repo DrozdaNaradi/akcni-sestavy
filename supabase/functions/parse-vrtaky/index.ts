@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       model: "claude-opus-4-8",
       max_tokens: 16000,
       system: SYSTEM,
-      messages: [{ role: "user", content: `Polož­ky k rozpoznání (jedna na řádek, číslo: název):\n${list}` }],
+      messages: [{ role: "user", content: `Polozky k rozpoznani (jedna na radek, cislo: nazev):\n${list}` }],
       output_config: {
         format: {
           type: "json_schema",
