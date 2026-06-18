@@ -212,6 +212,14 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
       .mode-btn .dot{width:9px;height:9px;border-radius:50%;background:var(--line-s);flex-shrink:0}
       .mode-btn.active .dot{background:var(--green)}
       .vk-card{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:16px;margin-bottom:14px}
+      .vk-cardhead{display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none}
+      .vk-cardhead-thumb{width:40px;height:32px;border-radius:6px;object-fit:contain;background:var(--surface-3);border:1px solid var(--line);flex-shrink:0}
+      .vk-cardhead-title{flex:1;min-width:0;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .vk-cardhead-count{font-size:12px;color:var(--text-3);white-space:nowrap;font-weight:600}
+      .vk-cardhead-chev{color:var(--text-3);transition:transform .2s;flex-shrink:0}
+      .vk-card:not(.collapsed) .vk-cardhead-chev{transform:rotate(90deg)}
+      .vk-cardbody{margin-top:14px}
+      .vk-card.collapsed .vk-cardbody{display:none}
       .vk-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
       .vk-foto{width:64px;height:48px;border-radius:8px;object-fit:contain;background:var(--surface-3);border:1px solid var(--line);flex-shrink:0}
       .vk-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
@@ -2351,7 +2359,14 @@ function renderVrtakyAdmin() {
       </tr>`).join('');
 
     return `
-    <div class="vk-card">
+    <div class="vk-card collapsed">
+      <div class="vk-cardhead" onclick="toggleVk(this)">
+        ${k.foto_url ? `<img class="vk-cardhead-thumb" src="${esc(k.foto_url)}" onerror="this.style.display='none'">` : ''}
+        <div class="vk-cardhead-title">${esc(k.nazev) || '(bez názvu)'}</div>
+        <div class="vk-cardhead-count">${pol.length} art.${k.aktivni ? '' : ' · skrytá'}</div>
+        <svg class="vk-cardhead-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <div class="vk-cardbody">
       <div class="vk-head">
         ${k.foto_url ? `<img class="vk-foto" src="${esc(k.foto_url)}" onerror="this.style.display='none'">` : ''}
         <input class="inp" style="flex:1;min-width:160px;font-weight:600" value="${esc(k.nazev)}" placeholder="Název kategorie (např. Vrtáky SDS+)" onchange="saveVrtakKat('${k.id}','nazev',this.value)">
@@ -2389,9 +2404,12 @@ function renderVrtakyAdmin() {
           </div>
         </div>
       </details>
+      </div>
     </div>`;
   }).join('');
 }
+
+function toggleVk(headEl){ headEl.closest('.vk-card').classList.toggle('collapsed'); }
 
 function recalcVk(id) {
   const cena = document.getElementById('vk-cena-' + id).value;

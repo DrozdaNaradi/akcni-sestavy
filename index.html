@@ -286,20 +286,26 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter Tight','Inte
 }
 
 /* Sekce / oddíl */
+#vrtaky-sections{display:flex;flex-direction:column;gap:40px}
 .vsec{background:rgba(0,0,0,.08);border:1px solid var(--border);border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:16px}
-.vsec-head{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
-.vsec-foto{width:160px;height:120px;flex-shrink:0;background:#fff;border:1px solid var(--card-border);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
-.vsec-foto img{width:100%;height:100%;object-fit:contain;padding:8px}
+.vsec-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;cursor:pointer;user-select:none}
+.vsec-foto{width:96px;height:72px;flex-shrink:0;background:#fff;border:1px solid var(--card-border);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:zoom-in}
+.vsec-foto img{width:100%;height:100%;object-fit:contain;padding:6px}
 .vsec-titles{flex:1;min-width:0}
-.vsec-name{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.05;color:var(--text);margin:0 0 4px}
-.vsec-desc{font-size:14px;color:var(--text-3);line-height:1.45;margin:0}
+.vsec-name{font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--text);margin:0 0 4px}
+.vsec-desc{font-size:14px;color:var(--text-3);line-height:1.45;margin:0 0 4px}
+.vsec-count{font-size:12px;font-weight:700;color:var(--text-4);letter-spacing:.03em;text-transform:uppercase}
+.vsec-chevron{flex-shrink:0;color:var(--text-4);transition:transform .2s}
+.vsec:not(.collapsed) .vsec-chevron{transform:rotate(90deg)}
+.vsec.collapsed{gap:0}
+.vsec.collapsed .vsec-body{display:none}
 
 /* Tabulka */
 .vtable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--card-border);border-radius:11px}
 .vtable{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
 .vtable thead th{background:var(--card-bg);color:var(--text-4);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:right;padding:11px 14px;border-bottom:1px solid var(--card-border);white-space:nowrap}
 .vtable thead th:nth-child(1),.vtable thead th:nth-child(2){text-align:left}
-.vtable tbody td{padding:10px 14px;border-bottom:1px solid var(--border-soft);text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2);white-space:nowrap}
+.vtable tbody td{padding:9px 14px;border-bottom:1px solid var(--border-soft);text-align:right;font-variant-numeric:tabular-nums;color:var(--text-2);white-space:nowrap}
 .vtable tbody tr:last-child td{border-bottom:none}
 .vtable tbody tr{transition:background .12s}
 @media(hover:hover){
@@ -740,6 +746,9 @@ function filterVrtaky(){
       if (show) secVisible = true;
     });
     sec.classList.toggle('hidden-sec', !secVisible);
+    // při hledání rozbal sekce s výsledky; po vymazání zase vše zabal
+    if (terms.length) sec.classList.toggle('collapsed', !secVisible);
+    else sec.classList.add('collapsed');
     if (secVisible) anyVisible = true;
   });
   const nr = document.getElementById('vsearch-noresults');
@@ -774,7 +783,7 @@ async function loadVrtaky() {
     if (!pol.length) return '';
 
     const foto = k.foto_url
-      ? `<div class="vsec-foto" onclick="openImg('${esc(k.foto_url)}','${esc(k.nazev)}')"><img src="${esc(k.foto_url)}" alt="${esc(k.nazev)}" onerror="this.parentElement.style.display='none'"></div>`
+      ? `<div class="vsec-foto" onclick="event.stopPropagation();openImg('${esc(k.foto_url)}','${esc(k.nazev)}')"><img src="${esc(k.foto_url)}" alt="${esc(k.nazev)}" onerror="this.parentElement.style.display='none'"></div>`
       : '';
 
     const rows = pol.map(p => {
@@ -812,27 +821,35 @@ async function loadVrtaky() {
     }).join('');
 
     return `
-      <section class="vsec" id="vsec-${ki}" data-name="${esc(vnorm(k.nazev + ' ' + (k.popis||'')))}">
-        <header class="vsec-head">
+      <section class="vsec collapsed" id="vsec-${ki}" data-name="${esc(vnorm(k.nazev + ' ' + (k.popis||'')))}">
+        <header class="vsec-head" onclick="toggleVsec(this)">
           ${foto}
           <div class="vsec-titles">
             <h2 class="vsec-name">${esc(k.nazev)}</h2>
             ${k.popis ? `<p class="vsec-desc">${esc(k.popis)}</p>` : ''}
+            <div class="vsec-count">${pol.length} ${pol.length === 1 ? 'artikl' : (pol.length < 5 ? 'artikly' : 'artiklů')}</div>
           </div>
+          <svg class="vsec-chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </header>
-        <div class="vtable-wrap">
-          <table class="vtable">
-            <thead><tr>
-              <th>Artikl</th><th>Název</th><th>Cena bez DPH</th>
-              <th>Sleva</th><th>Cena po slevě</th><th>Počet ks</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
+        <div class="vsec-body">
+          <div class="vtable-wrap">
+            <table class="vtable">
+              <thead><tr>
+                <th>Artikl</th><th>Název</th><th>Cena bez DPH</th>
+                <th>Sleva</th><th>Cena po slevě</th><th>Počet ks</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
         </div>
       </section>`;
   }).join('') + `<div class="vsearch-noresults" id="vsearch-noresults" style="display:none">Nic nenalezeno — zkus jiný výraz.</div>`;
 
   updateCartBar();
+}
+
+function toggleVsec(headEl) {
+  headEl.closest('.vsec').classList.toggle('collapsed');
 }
 
 function openImg(url, alt) {
