@@ -400,8 +400,9 @@ html,body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-syst
               <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-only-dims" checked onchange="cenikRenderGroups()"> jen s rozměry</label>
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-              <button class="btn btn-secondary btn-sm" onclick="cenikAI()">✨ Roztřídit přes AI</button>
-              <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-ai-all"> i položky, které zvládl parser (přesné kategorie e-shopu)</label>
+              <button class="btn btn-primary btn-sm" onclick="cenikAIvse()">✨ Roztřídit VŠECHNY vrtáky přes AI</button>
+              <button class="btn btn-secondary btn-sm" onclick="cenikAI()">AI jen na filtr</button>
+              <label style="font-size:12px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cenik-ai-all"> i položky, které zvládl parser</label>
               <span id="cenik-ai-status" style="font-size:12px;color:var(--text-3)">AI roztřídí položky z aktuálního filtru do kategorií e-shopu a doplní rozměry.</span>
             </div>
             <div id="cenik-groups" style="max-height:340px;overflow-y:auto"></div>
@@ -2598,21 +2599,19 @@ function cenikRenderGroups(){
   }).join('') + (total>60 ? `<div style="font-size:11px;color:var(--text-3);padding:6px 0">…a další ${total-60} skupin — zpřesni hledání.</div>` : '');
 }
 
-// AI doplnění (hybrid): vezme z aktuálního filtru řádky, které parser nerozpoznal, a pošle je Edge Function
-async function cenikAI(){
-  if(!cenikRows.length){ alert('Nejdřív nahraj CSV ceník.'); return; }
-  const q = cenikNorm(document.getElementById('cenik-filter').value.trim());
-  const terms = q.split(/\s+/).filter(Boolean);
-  const aiAll = document.getElementById('cenik-ai-all').checked;
-  const pending = cenikRows.filter(r => {
-    if(r._aiDims !== undefined) return false;          // už zpracováno AI
-    if(!aiAll && parseDims(r.nazev)) return false;     // hybrid: parser to zvládl sám
-    if(terms.length){ const n = cenikNorm(r.nazev); if(!terms.every(t => n.includes(t))) return false; }
-    return true;
-  });
-  const status = document.getElementById('cenik-ai-status');
-  if(!pending.length){ status.textContent = 'Nic k dořešení — buď je vše rozpoznané, nebo zpřesni filtr (AI jede jen na aktuální filtr).'; status.style.color = 'var(--text-3)'; return; }
-  if(pending.length > 400 && !confirm(pending.length + ' položek pro AI. Pokračovat? Více položek = vyšší účet za API.')) return;
+// Rozpozná vrtací/řezný artikl podle širokého seznamu pojmů (ne jen "vrták")
+const VRTAK_KW = ['vrtak','vrtaci','vrtani','korunk','jadrov','zavitnik','forstner','shockwave',
+  'switchblade','speed feed','speedfeed','red hex','redhex','hole dozer','holedozer','sds',
+  'kruhova pilk','kruhove pilk','stupnovit','hadovit','sklicidl','centrovaci trn','frezovac','dirovk'];
+function isVrtakCandidate(nazev){
+  const n = cenikNorm(nazev);
+  return VRTAK_KW.some(k => n.includes(k));
+}
+
+// Sdílený AI běh: pošle dávky Edge Function a uloží výsledky do řádků
+async function runCenikAI(pending, status){
+  if(!pending.length){ status.textContent = 'Nic k roztřídění — buď je vše hotové, nebo zpřesni filtr.'; status.style.color = 'var(--text-3)'; return false; }
+  if(!confirm(pending.length + ' položek pošle AI (model claude-opus-4-8). Pokračovat? Více položek = vyšší účet za API.')) return false;
   status.style.color = 'var(--text-3)';
   try{
     for(let i=0;i<pending.length;i+=80){
@@ -2636,9 +2635,33 @@ async function cenikAI(){
     }
     status.textContent = '✓ AI hotovo (' + pending.length + ' položek)'; status.style.color = 'var(--green)';
     cenikRenderGroups();
+    return true;
   }catch(e){
     status.textContent = '⚠ ' + e.message; status.style.color = 'var(--red)';
+    return false;
   }
+}
+
+// AI na aktuální filtr (hybrid; s přepínačem i na parserem rozpoznané)
+async function cenikAI(){
+  if(!cenikRows.length){ alert('Nejdřív nahraj CSV ceník.'); return; }
+  const q = cenikNorm(document.getElementById('cenik-filter').value.trim());
+  const terms = q.split(/\s+/).filter(Boolean);
+  const aiAll = document.getElementById('cenik-ai-all').checked;
+  const pending = cenikRows.filter(r => {
+    if(r._aiDims !== undefined) return false;
+    if(!aiAll && parseDims(r.nazev)) return false;
+    if(terms.length){ const n = cenikNorm(r.nazev); if(!terms.every(t => n.includes(t))) return false; }
+    return true;
+  });
+  await runCenikAI(pending, document.getElementById('cenik-ai-status'));
+}
+
+// AI na VŠECHNY vrtací/řezné artikly v ceníku (ignoruje filtr i parser → konzistentní kategorie e-shopu)
+async function cenikAIvse(){
+  if(!cenikRows.length){ alert('Nejdřív nahraj CSV ceník.'); return; }
+  const pending = cenikRows.filter(r => r._aiDims === undefined && isVrtakCandidate(r.nazev));
+  await runCenikAI(pending, document.getElementById('cenik-ai-status'));
 }
 
 async function createKategorieFromGroup(idx){
